@@ -80,14 +80,21 @@ export function ProductCard({ product, collectionName }: ProductCardProps) {
       </Link>
 
       {/* Info */}
-      <div className="mt-2 pb-3 text-center px-2">
+      <div className="mt-2 pb-3 text-center px-1">
         <Link href={`/produto/${product.id}`} className="block">
-          <h3 className="text-[10px] md:text-[11px] text-brand-950 uppercase tracking-wide line-clamp-1 font-medium">
+          <h3 className="text-[10px] md:text-[11px] text-brand-950 uppercase tracking-wide line-clamp-1 font-bold">
             {product.name}
           </h3>
-          <p className="text-[10px] md:text-[11px] text-brand-600 mt-1">
-            {formatPrice(product.price)}
-          </p>
+          <div className="mt-1 flex items-center justify-center gap-2">
+            <span className="text-[10px] md:text-[11px] text-brand-950 font-black tracking-wider">
+              {formatPrice(product.price)}
+            </span>
+            {isOnSale && (
+              <span className="text-[9px] text-brand-300 line-through">
+                {formatPrice(product.original_price)}
+              </span>
+            )}
+          </div>
         </Link>
       </div>
     </div>
