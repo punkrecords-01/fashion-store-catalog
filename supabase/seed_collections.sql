@@ -1,6 +1,10 @@
 -- SQL para popular as coleções com conteúdo placeholder
 -- Copie e cole este código no SQL Editor do seu Supabase Dashboard
 
+-- Garantir que as colunas novas existam (caso as migrations não tenham sido executadas)
+ALTER TABLE collections ADD COLUMN IF NOT EXISTS subtitle TEXT;
+ALTER TABLE collections ADD COLUMN IF NOT EXISTS content JSONB DEFAULT '[]';
+
 -- Limpar coleções antigas
 DELETE FROM collections;
 
