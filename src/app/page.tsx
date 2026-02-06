@@ -121,25 +121,6 @@ export default function HomePage() {
         className="bg-black border-none py-2.5"
       />
 
-      {/* Collections Carousel */}
-      {collections.length > 0 && (
-        <section className="mt-4 border-b border-gray-100 pb-12">
-          <div className="px-4 md:px-6 mb-6 flex justify-between items-end">
-            <div>
-              <p className="text-[10px] font-bold tracking-[0.3em] text-brand-400 uppercase mb-1">Explore</p>
-              <h2 className="text-2xl font-logo tracking-tighter uppercase text-brand-950">Coleções</h2>
-            </div>
-            <Link 
-              href="/colecoes" 
-              className="text-[10px] font-bold tracking-widest uppercase border-b border-brand-900 pb-0.5 hover:text-brand-500 hover:border-brand-500 transition-colors"
-            >
-              Ver Todas
-            </Link>
-          </div>
-          <CollectionsCarousel collections={collections} />
-        </section>
-      )}
-
       {/* Page Title & Filter Row - Inspired by Dime */}
       <section className="px-4 md:px-6 py-4">
         {/* Horizontal Filters Row */}
@@ -221,6 +202,25 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Collections Carousel - Moved below products */}
+      {collections.length > 0 && (
+        <section className="mt-8 border-t border-gray-100 py-16 bg-brand-50/30">
+          <div className="px-4 md:px-6 mb-8 flex justify-between items-end">
+            <div>
+              <p className="text-[10px] font-bold tracking-[0.3em] text-brand-400 uppercase mb-1">Curadoria</p>
+              <h2 className="text-3xl font-logo tracking-tighter uppercase text-brand-950">Explorar Coleções</h2>
+            </div>
+            <Link 
+              href="/colecoes" 
+              className="text-[10px] font-bold tracking-widest uppercase border-b border-brand-900 pb-0.5 hover:text-brand-500 hover:border-brand-500 transition-colors"
+            >
+              Ver Todas
+            </Link>
+          </div>
+          <CollectionsCarousel collections={collections} />
+        </section>
+      )}
 
       <FilterPanel
         isOpen={isFilterPanelOpen}
