@@ -100,7 +100,7 @@ export function CollectionsCarousel({ collections }: CollectionsCarouselProps) {
               
               <div className="overflow-hidden">
                 <span className="inline-block text-[10px] font-bold tracking-[0.2em] uppercase border-b border-white pb-1 translate-y-full group-hover:translate-y-0 transition-transform duration-500 delay-100">
-                  Shop Collection
+                  Ver Coleção
                 </span>
               </div>
             </div>
