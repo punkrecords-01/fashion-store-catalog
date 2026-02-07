@@ -71,6 +71,7 @@ async function downloadAndUploadPhoto(fileId: string, botToken: string): Promise
 }
 
 export async function POST(request: NextRequest) {
+  console.log('🚀 Telegram Webhook v2 - Storage Enabled')
   try {
     const body = await request.json()
     
