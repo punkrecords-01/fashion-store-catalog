@@ -63,14 +63,18 @@ export async function POST(request: NextRequest) {
         
         if (fileData.ok) {
           const filePath = fileData.result.file_path
+          // IMPORTANTE: Aqui estava o possível problema. O Vercel precisa da URL completa do servidor do Telegram.
           const imageUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`
           rawImages.push(imageUrl)
+          console.log('📸 URL da foto gerada:', imageUrl)
         } else {
           debugPhoto = `[Erro Telegram: ${fileData.description}]`
         }
       } catch (err) {
         debugPhoto = `[Erro Fetch: ${err instanceof Error ? err.message : 'Unknown'}]`
       }
+    } else {
+      console.log('📝 Mensagem sem foto recebida')
     }
 
     // Usar o nosso robô inteligente para ler o texto
