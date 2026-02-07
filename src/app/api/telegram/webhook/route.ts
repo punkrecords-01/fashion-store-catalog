@@ -50,9 +50,27 @@ export async function POST(request: NextRequest) {
     // Se tiver foto, o Telegram manda uma lista de tamanhos, pegamos o maior
     const rawImages: string[] = []
     if (message.photo) {
-      // Nota: Para baixar a foto mesmo, precisaríamos de uma chamada extra à API do Telegram
-      // Por enquanto, vamos marcar que existe uma foto pendente.
-      console.log('📸 Foto recebida via Telegram')
+      // O Telegram envia várias versões da foto, a última (array.length - 1) é a de maior resolução
+      const photo = message.photo[message.photo.length - 1]
+      const fileId = photo.file_id
+      
+      // Construir a URL do arquivo no servidor do Telegram
+      // Nota: Para ser definitivo, o ideal seria baixar e subir no Supabase Storage.
+      // Mas por enquanto, vamos pegar o link direto para o admin ver.
+      const botToken = process.env.TELEGRAM_BOT_TOKEN
+      try {
+        const fileResponse = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`)
+        const fileData = await fileResponse.json()
+        
+        if (fileData.ok) {
+          const filePath = fileData.result.file_path
+          const imageUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`
+          rawImages.push(imageUrl)
+          console.log('📸 Foto capturada:', imageUrl)
+        }
+      } catch (err) {
+        console.error('❌ Erro ao buscar link da foto no Telegram:', err)
+      }
     }
 
     // Usar o nosso robô inteligente para ler o texto
