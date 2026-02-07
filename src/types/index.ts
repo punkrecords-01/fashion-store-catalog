@@ -349,7 +349,7 @@ export const PRICE_RANGES = [
 // ============================================
 
 export type PendingItemStatus = 'pending' | 'approved' | 'rejected' | 'merged'
-export type PendingItemSource = 'whatsapp' | 'csv' | 'manual'
+export type PendingItemSource = 'whatsapp' | 'telegram' | 'csv' | 'manual'
 
 export interface PendingItem {
   id: string
