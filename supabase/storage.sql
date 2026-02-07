@@ -20,6 +20,13 @@ ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (bucket_id = 'products');
 
+-- Service Role pode fazer upload (para o webhook do Telegram)
+-- Nota: service_role já ignora RLS, mas se precisar de anon:
+CREATE POLICY "Webhook pode fazer upload"
+ON storage.objects FOR INSERT
+TO anon
+WITH CHECK (bucket_id = 'products' AND (storage.foldername(name))[1] = 'telegram');
+
 -- Apenas autenticados podem DELETAR
 CREATE POLICY "Deleção de imagens apenas para admin"
 ON storage.objects FOR DELETE

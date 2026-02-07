@@ -18,6 +18,58 @@ function getServiceClient() {
   return createClient(url, key)
 }
 
+/**
+ * Baixa a foto do Telegram e sobe para o Supabase Storage.
+ * Retorna a URL pública permanente.
+ */
+async function downloadAndUploadPhoto(fileId: string, botToken: string): Promise<string | null> {
+  const supabase = getServiceClient()
+
+  // 1. Pedir ao Telegram o caminho do arquivo
+  const fileRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`)
+  const fileData = await fileRes.json()
+
+  if (!fileData.ok) {
+    console.error('❌ Telegram getFile falhou:', fileData.description)
+    return null
+  }
+
+  const telegramFilePath = fileData.result.file_path
+  const downloadUrl = `https://api.telegram.org/file/bot${botToken}/${telegramFilePath}`
+
+  // 2. Baixar o arquivo binário
+  const imageRes = await fetch(downloadUrl)
+  if (!imageRes.ok) {
+    console.error('❌ Falha ao baixar imagem do Telegram:', imageRes.status)
+    return null
+  }
+
+  const imageBuffer = await imageRes.arrayBuffer()
+  const extension = telegramFilePath.split('.').pop() || 'jpg'
+  const fileName = `telegram/${Date.now()}_${Math.random().toString(36).slice(2)}.${extension}`
+
+  // 3. Subir para o Supabase Storage (usando service_role que ignora RLS)
+  const { error: uploadError } = await supabase.storage
+    .from('products')
+    .upload(fileName, imageBuffer, {
+      contentType: `image/${extension === 'jpg' ? 'jpeg' : extension}`,
+      upsert: false,
+    })
+
+  if (uploadError) {
+    console.error('❌ Erro ao subir para Supabase Storage:', uploadError.message)
+    return null
+  }
+
+  // 4. Gerar URL pública permanente
+  const { data: publicUrl } = supabase.storage
+    .from('products')
+    .getPublicUrl(fileName)
+
+  console.log('✅ Foto salva permanentemente:', publicUrl.publicUrl)
+  return publicUrl.publicUrl
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -49,42 +101,38 @@ export async function POST(request: NextRequest) {
 
     const botToken = process.env.TELEGRAM_BOT_TOKEN
     
-    // Se tiver foto, o Telegram manda uma lista de tamanhos, pegamos o maior
+    // Se tiver foto, baixa do Telegram e sobe pro Supabase Storage
     const rawImages: string[] = []
-    let debugPhoto = ''
+    let debugInfo = ''
 
-    if (message.photo) {
+    if (!botToken) {
+      debugInfo = '[ERRO: TELEGRAM_BOT_TOKEN não configurado no servidor]'
+    } else if (message.photo) {
+      // O Telegram envia várias versões, a última é a maior resolução
       const photo = message.photo[message.photo.length - 1]
-      const fileId = photo.file_id
       
       try {
-        const fileResponse = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`)
-        const fileData = await fileResponse.json()
-        
-        if (fileData.ok) {
-          const filePath = fileData.result.file_path
-          // IMPORTANTE: Aqui estava o possível problema. O Vercel precisa da URL completa do servidor do Telegram.
-          const imageUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`
-          rawImages.push(imageUrl)
-          console.log('📸 URL da foto gerada:', imageUrl)
+        const permanentUrl = await downloadAndUploadPhoto(photo.file_id, botToken)
+        if (permanentUrl) {
+          rawImages.push(permanentUrl)
         } else {
-          debugPhoto = `[Erro Telegram: ${fileData.description}]`
+          debugInfo = '[ERRO: Não foi possível salvar a foto. Verifique se o bucket "products" existe no Supabase Storage.]'
         }
       } catch (err) {
-        debugPhoto = `[Erro Fetch: ${err instanceof Error ? err.message : 'Unknown'}]`
+        debugInfo = `[ERRO FOTO: ${err instanceof Error ? err.message : 'Erro desconhecido'}]`
       }
-    } else {
-      console.log('📝 Mensagem sem foto recebida')
     }
 
     // Usar o nosso robô inteligente para ler o texto
     const parseResult = parseProductText(text)
 
     // Salvar na fila de aprovação
+    const rawText = [text, debugInfo].filter(Boolean).join('\n')
+
     const { error } = await supabase
       .from('pending_items')
       .insert({
-        raw_text: text + (debugPhoto ? '\n' + debugPhoto : ''),
+        raw_text: rawText || null,
         raw_images: rawImages,
         ...parseResult,
         source: 'telegram',
