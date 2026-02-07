@@ -144,8 +144,26 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('❌ Erro no banco:', error)
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `❌ Erro ao salvar no catálogo: ${error.message}`
+        })
+      })
       return NextResponse.json({ error: 'DB Error' }, { status: 500 })
     }
+
+    // Responder sucesso no Telegram
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `✅ Recebido! O item "${parseResult.parsed_name || 'Sem nome'}" foi enviado para aprovação no Admin.`
+      })
+    })
 
     return NextResponse.json({ ok: true })
   } catch (error) {
