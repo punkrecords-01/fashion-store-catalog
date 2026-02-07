@@ -31,9 +31,9 @@ export default function CollectionsPage() {
   return (
     <div className="container-app py-24">
       <div className="text-center mb-16">
-        <span className="text-[10px] font-bold tracking-[0.4em] text-brand-400 uppercase">Archive</span>
-        <h1 className="font-logo text-5xl md:text-7xl tracking-tighter uppercase mt-2">All Collections</h1>
-        <p className="text-brand-500 font-serif italic text-lg mt-4">Curated editorials of our most recent seasons.</p>
+        <span className="text-[10px] font-bold tracking-[0.4em] text-brand-400 uppercase">Acervo</span>
+        <h1 className="font-logo text-5xl md:text-7xl tracking-tighter uppercase mt-2">Todas as Coleções</h1>
+        <p className="text-brand-500 font-serif italic text-lg mt-4">Editoriais curados das nossas temporadas mais recentes.</p>
       </div>
       
       {loading ? (
@@ -47,7 +47,7 @@ export default function CollectionsPage() {
         </div>
       ) : collections.length === 0 ? (
         <div className="text-center py-24 bg-brand-50">
-          <p className="text-[10px] font-bold tracking-[0.2em] text-brand-400 uppercase">New seasons coming soon.</p>
+          <p className="text-[10px] font-bold tracking-[0.2em] text-brand-400 uppercase">Novas coleções em breve.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">

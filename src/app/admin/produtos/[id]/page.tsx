@@ -13,22 +13,11 @@ import {
   ProductSize, 
   ProductStyleTag,
   ProductStatus,
-  ProductFabric,
-  ProductOccasion,
-  ProductFit,
-  ProductLength,
-  ProductPattern,
   CATEGORY_LABELS, 
   COLOR_LABELS, 
   SIZE_ORDER,
   STYLE_LABELS,
-  STATUS_LABELS,
-  FABRIC_LABELS,
-  OCCASION_LABELS,
-  FIT_LABELS,
-  LENGTH_LABELS,
-  PATTERN_LABELS,
-  BRAND_LABELS
+  STATUS_LABELS
 } from '@/types'
 import { cn } from '@/lib/utils'
 
@@ -37,12 +26,6 @@ const COLORS = Object.entries(COLOR_LABELS) as [ProductColor, string][]
 const SIZES = SIZE_ORDER
 const STYLES = Object.entries(STYLE_LABELS) as [ProductStyleTag, string][]
 const STATUSES = Object.entries(STATUS_LABELS) as [ProductStatus, string][]
-const FABRICS = Object.entries(FABRIC_LABELS) as [ProductFabric, string][]
-const OCCASIONS = Object.entries(OCCASION_LABELS) as [ProductOccasion, string][]
-const FITS = Object.entries(FIT_LABELS) as [ProductFit, string][]
-const LENGTHS = Object.entries(LENGTH_LABELS) as [ProductLength, string][]
-const PATTERNS = Object.entries(PATTERN_LABELS) as [ProductPattern, string][]
-const BRANDS = Object.entries(BRAND_LABELS) as [string, string][]
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
   const router = useRouter()
@@ -65,14 +48,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
   const [originalPrice, setOriginalPrice] = useState('')
   const [status, setStatus] = useState<ProductStatus>('available')
   const [description, setDescription] = useState('')
-  const [brand, setBrand] = useState('')
-
-  // Novos campos para filtros avançados
-  const [fabric, setFabric] = useState<ProductFabric | null>(null)
-  const [selectedOccasions, setSelectedOccasions] = useState<ProductOccasion[]>([])
-  const [fit, setFit] = useState<ProductFit | null>(null)
-  const [length, setLength] = useState<ProductLength | null>(null)
-  const [pattern, setPattern] = useState<ProductPattern | null>(null)
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -99,12 +74,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       setOriginalPrice(product.original_price?.toString().replace('.', ',') || '')
       setStatus(product.status)
       setDescription(product.description || '')
-      setBrand(product.brand || '')
-      setFabric(product.fabric || null)
-      setSelectedOccasions(product.occasion || [])
-      setFit(product.fit || null)
-      setLength(product.length || null)
-      setPattern(product.pattern || null)
       setImages(product.images)
       setLoading(false)
     }
@@ -182,12 +151,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           status,
           images,
           description: description || null,
-          brand: brand || null,
-          fabric: fabric || null,
-          occasion: selectedOccasions.length > 0 ? selectedOccasions : null,
-          fit: fit || null,
-          length: length || null,
-          pattern: pattern || null,
         })
         .eq('id', params.id)
 
@@ -334,36 +297,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
               className="w-full px-4 py-3 border border-brand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-900"
             />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-brand-700 mb-1">
-              Marca
-            </label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {BRANDS.map(([value, label]) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setBrand(value === brand ? '' : value)}
-                  className={cn(
-                    'px-3 py-1.5 rounded-full text-xs transition-colors',
-                    brand === value
-                      ? 'bg-brand-900 text-white'
-                      : 'bg-brand-50 text-brand-600 hover:bg-brand-100'
-                  )}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <input
-              type="text"
-              value={brand}
-              onChange={(e) => setBrand(e.target.value)}
-              placeholder="Ou digite outra marca..."
-              className="w-full px-4 py-2 border border-brand-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-900"
-            />
-          </div>
         </div>
 
         {/* Categoria */}
@@ -473,130 +406,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                           ? 'bg-gray-500 text-white'
                           : 'bg-green-500 text-white'
                     : 'bg-brand-100 text-brand-700 hover:bg-brand-200'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* ============================================ */}
-        {/* NOVOS CAMPOS - FILTROS AVANÇADOS */}
-        {/* ============================================ */}
-
-        {/* Tecido */}
-        <div className="bg-white rounded-2xl p-4 border border-brand-100">
-          <label className="block text-sm font-medium text-brand-700 mb-3">
-            Tecido <span className="text-brand-400 font-normal">(opcional)</span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {FABRICS.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFabric(fabric === value ? null : value)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-sm transition-colors',
-                  fabric === value
-                    ? 'bg-brand-900 text-white'
-                    : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Ocasião */}
-        <div className="bg-white rounded-2xl p-4 border border-brand-100">
-          <label className="block text-sm font-medium text-brand-700 mb-3">
-            Ocasião <span className="text-brand-400 font-normal">(opcional)</span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {OCCASIONS.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => toggleArrayItem(selectedOccasions, value, setSelectedOccasions)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-sm transition-colors',
-                  selectedOccasions.includes(value)
-                    ? 'bg-brand-900 text-white'
-                    : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Modelagem (Fit) */}
-        <div className="bg-white rounded-2xl p-4 border border-brand-100">
-          <label className="block text-sm font-medium text-brand-700 mb-3">
-            Modelagem <span className="text-brand-400 font-normal">(opcional)</span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {FITS.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFit(fit === value ? null : value)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-sm transition-colors',
-                  fit === value
-                    ? 'bg-brand-900 text-white'
-                    : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Comprimento */}
-        <div className="bg-white rounded-2xl p-4 border border-brand-100">
-          <label className="block text-sm font-medium text-brand-700 mb-3">
-            Comprimento <span className="text-brand-400 font-normal">(opcional)</span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {LENGTHS.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setLength(length === value ? null : value)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-sm transition-colors',
-                  length === value
-                    ? 'bg-brand-900 text-white'
-                    : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Estampa */}
-        <div className="bg-white rounded-2xl p-4 border border-brand-100">
-          <label className="block text-sm font-medium text-brand-700 mb-3">
-            Estampa <span className="text-brand-400 font-normal">(opcional)</span>
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {PATTERNS.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setPattern(pattern === value ? null : value)}
-                className={cn(
-                  'px-3 py-1.5 rounded-full text-sm transition-colors',
-                  pattern === value
-                    ? 'bg-brand-900 text-white'
-                    : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
                 )}
               >
                 {label}

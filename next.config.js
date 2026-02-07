@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  basePath: process.env.NODE_ENV === 'production' ? '/fashion-store-catalog' : '',
+  // output: 'export' removed to enable API routes (webhooks, CSV import, etc.)
+  // basePath removed - deploy on custom domain or Vercel instead of GitHub Pages
   images: {
     unoptimized: true,
     remotePatterns: [

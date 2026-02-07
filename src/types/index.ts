@@ -343,3 +343,65 @@ export const PRICE_RANGES = [
   { min: 300, max: 500, label: 'R$ 300 - R$ 500' },
   { min: 500, max: Infinity, label: 'Acima de R$ 500' },
 ]
+
+// ============================================
+// PendingItem (Fila de Aprovação)
+// ============================================
+
+export type PendingItemStatus = 'pending' | 'approved' | 'rejected' | 'merged'
+export type PendingItemSource = 'whatsapp' | 'csv' | 'manual'
+
+export interface PendingItem {
+  id: string
+  raw_text?: string
+  raw_images: string[]
+  parsed_name?: string
+  parsed_category?: string
+  parsed_sizes: string[]
+  parsed_colors: string[]
+  parsed_price?: number
+  parsed_original_price?: number
+  parsed_brand?: string
+  parsed_reference?: string
+  parsed_fabric?: string
+  parsed_description?: string
+  parsed_occasion: string[]
+  parsed_fit?: string
+  parsed_length?: string
+  parsed_pattern?: string
+  parsed_style_tags: string[]
+  confidence_score: number
+  warnings: string[]
+  source: PendingItemSource
+  source_message_id?: string
+  source_phone?: string
+  status: PendingItemStatus
+  reviewed_by?: string
+  reviewed_at?: string
+  merged_product_id?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PendingItemInsert extends Omit<PendingItem, 'id' | 'created_at' | 'updated_at' | 'reviewed_by' | 'reviewed_at' | 'merged_product_id'> {}
+
+// Resultado do parser
+export interface ParseResult {
+  parsed_name?: string
+  parsed_category?: string
+  parsed_sizes: string[]
+  parsed_colors: string[]
+  parsed_price?: number
+  parsed_original_price?: number
+  parsed_brand?: string
+  parsed_reference?: string
+  parsed_fabric?: string
+  parsed_description?: string
+  parsed_occasion: string[]
+  parsed_fit?: string
+  parsed_length?: string
+  parsed_pattern?: string
+  parsed_style_tags: string[]
+  confidence_score: number
+  warnings: string[]
+}

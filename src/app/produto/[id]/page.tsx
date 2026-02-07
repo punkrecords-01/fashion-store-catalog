@@ -4,15 +4,12 @@ import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ChevronLeft, Share2, Ruler, Loader2, ShoppingBag } from 'lucide-react'
-import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon'
+import { ChevronLeft, MessageCircle, Share2, Ruler, Loader2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { formatPrice, generateWhatsAppLink } from '@/lib/utils'
 import { Product, STATUS_LABELS, CATEGORY_LABELS } from '@/types'
-import { useCart } from '@/contexts/CartContext'
 
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const { addItem } = useCart()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -135,12 +132,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
         {/* Info */}
         <div className="flex flex-col">
           <div className="mb-6">
-            <p className="text-xs uppercase tracking-widest text-brand-700 mb-1">
+            <p className="text-xs uppercase tracking-widest text-brand-400 mb-1">
               {CATEGORY_LABELS[product.category]}
             </p>
             <h1 className="font-display text-2xl md:text-3xl font-semibold mb-2">{product.name}</h1>
             {product.reference_code && (
-              <p className="text-sm text-brand-600">Ref: {product.reference_code}</p>
+              <p className="text-sm text-brand-400">Ref: {product.reference_code}</p>
             )}
           </div>
 
@@ -148,7 +145,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <div className="flex items-center gap-3 mb-1">
               <span className="text-2xl font-bold text-brand-900">{formatPrice(product.price)}</span>
               {product.original_price && product.original_price > product.price && (
-                <span className="text-lg text-brand-600 line-through">
+                <span className="text-lg text-brand-400 line-through">
                   {formatPrice(product.original_price)}
                 </span>
               )}
@@ -194,25 +191,17 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full py-4 bg-green-500 hover:bg-green-600 text-white font-bold uppercase tracking-widest text-xs transition-all shadow-md hover:shadow-lg"
+                className="flex items-center justify-center gap-2 w-full py-4 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-all shadow-md hover:shadow-lg"
               >
-                <WhatsAppIcon className="w-5 h-5 text-white" />
-                Eu quero
+                <MessageCircle className="w-5 h-5" />
+                Chamar no WhatsApp
               </a>
-
-              <button 
-                onClick={() => product && addItem(product)}
-                className="flex items-center justify-center gap-2 w-full py-4 bg-white border border-black text-black font-bold uppercase tracking-widest text-xs transition-all"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Juntar na sacola
-              </button>
               
               <button 
                 onClick={handleShare}
-                className="flex items-center justify-center gap-2 w-full py-3 text-brand-500 font-medium text-xs hover:text-brand-900 transition-colors"
+                className="flex items-center justify-center gap-2 w-full py-3 border border-brand-200 text-brand-700 font-medium rounded-xl hover:bg-brand-50 transition-colors"
               >
-                <Share2 className="w-3.5 h-3.5" />
+                <Share2 className="w-4 h-4" />
                 Compartilhar peça
               </button>
             </div>

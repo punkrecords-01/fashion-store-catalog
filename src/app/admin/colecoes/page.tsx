@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Plus, FolderHeart, Edit, Trash2 } from 'lucide-react'
+import { Plus, FolderHeart } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Collection } from '@/types'
 
@@ -12,35 +12,20 @@ export default function AdminCollectionsPage() {
   const supabase = createClient()
 
   useEffect(() => {
+    const fetchCollections = async () => {
+      const { data } = await supabase
+        .from('collections')
+        .select('*')
+        .order('display_order', { ascending: true })
+
+      if (data) {
+        setCollections(data as Collection[])
+      }
+      setLoading(false)
+    }
+
     fetchCollections()
   }, [])
-
-  const fetchCollections = async () => {
-    const { data } = await supabase
-      .from('collections')
-      .select('*')
-      .order('display_order', { ascending: true })
-
-    if (data) {
-      setCollections(data as Collection[])
-    }
-    setLoading(false)
-  }
-
-  const deleteCollection = async (id: string, title: string) => {
-    if (!confirm(`Tem certeza que deseja excluir a coleção "${title}"?`)) return
-
-    const { error } = await supabase
-      .from('collections')
-      .delete()
-      .eq('id', id)
-
-    if (error) {
-      alert('Erro ao excluir coleção')
-    } else {
-      setCollections(collections.filter(c => c.id !== id))
-    }
-  }
 
   return (
     <div className="p-4 lg:p-8">
@@ -50,13 +35,13 @@ export default function AdminCollectionsPage() {
           <h1 className="text-2xl font-display font-semibold">Coleções</h1>
           <p className="text-brand-500 text-sm mt-1">Curadorias editoriais</p>
         </div>
-        <Link
-          href="/admin/colecoes/novo"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-900 text-white rounded-xl hover:bg-brand-800 transition-colors"
+        <button
+          disabled
+          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-200 text-brand-400 rounded-xl cursor-not-allowed"
         >
           <Plus className="w-5 h-5" />
-          Nova Coleção
-        </Link>
+          Nova Coleção (em breve)
+        </button>
       </div>
 
       {/* Info */}
@@ -79,45 +64,27 @@ export default function AdminCollectionsPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {collections.map((collection) => (
             <div
               key={collection.id}
-              className="bg-white rounded-2xl p-6 border border-brand-100 flex flex-col justify-between h-full"
+              className="bg-white rounded-2xl p-6 border border-brand-100"
             >
-              <div>
-                <div className="flex items-start justify-between mb-2">
-                   <span className={`px-2 py-1 text-xs rounded-full ${
-                    collection.published 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
-                    {collection.published ? 'Publicada' : 'Rascunho'}
-                  </span>
-                </div>
-                
-                <h3 className="font-semibold text-brand-900 text-lg">{collection.title}</h3>
-                <p className="text-sm text-brand-500 mt-1 line-clamp-2">{collection.description}</p>
-                <p className="text-xs text-brand-400 mt-2">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="font-semibold text-brand-900">{collection.title}</h3>
+                  <p className="text-sm text-brand-500 mt-1">{collection.description}</p>
+                  <p className="text-xs text-brand-400 mt-2">
                     {collection.product_ids?.length || 0} peças
-                </p>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-brand-50">
-                <Link
-                    href={`/admin/colecoes/${collection.id}`}
-                    className="p-2 text-brand-500 hover:text-brand-900 hover:bg-brand-50 rounded-lg transition-colors"
-                    title="Editar"
-                >
-                    <Edit className="w-4 h-4" />
-                </Link>
-                <button
-                    onClick={() => deleteCollection(collection.id, collection.title)}
-                    className="p-2 text-red-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                    title="Excluir"
-                >
-                    <Trash2 className="w-4 h-4" />
-                </button>
+                  </p>
+                </div>
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  collection.published 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-gray-100 text-gray-500'
+                }`}>
+                  {collection.published ? 'Publicada' : 'Rascunho'}
+                </span>
               </div>
             </div>
           ))}

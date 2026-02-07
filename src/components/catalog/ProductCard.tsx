@@ -34,7 +34,7 @@ export function ProductCard({ product, collectionName }: ProductCardProps) {
             />
           ) : (
             <div className="flex items-center justify-center h-full text-brand-300 uppercase text-[10px] tracking-widest font-bold">
-              No Image
+              Sem Imagem
             </div>
           )}
 
@@ -89,7 +89,7 @@ export function ProductCard({ product, collectionName }: ProductCardProps) {
             <span className="text-[10px] md:text-[11px] text-brand-950 font-black tracking-wider">
               {formatPrice(product.price)}
             </span>
-            {isOnSale && (
+            {isOnSale && product.original_price && (
               <span className="text-[9px] text-brand-300 line-through">
                 {formatPrice(product.original_price)}
               </span>

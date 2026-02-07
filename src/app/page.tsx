@@ -8,7 +8,7 @@ import { ProductGrid } from '@/components/catalog/ProductGrid'
 import { FilterPanel, emptyFilters, countActiveFilters } from '@/components/catalog/FilterPanel'
 import { CollectionsCarousel } from '@/components/catalog/CollectionsCarousel'
 import { Marquee } from '@/components/ui/Marquee'
-// Removed unused imports
+import { Hero } from '@/components/layout/Hero'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -110,19 +110,79 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen bg-white pt-16">
+      {/* <Hero /> */}
       <Marquee 
         items={[
-          "It's Couture — Curadoria Premium", 
-          "Envio para todo o Brasil", 
-          "Peças Exclusivas & Atemporais",
-          "Acompanhe as tendências"
+          "Curadoria It's Couture: O luxo do atemporal", 
+          "Frete fixo para todo o Brasil", 
+          "Peças exclusivas selecionadas à mão",
+          "Novidades toda semana no Acervo",
+          "Atendimento personalizado via WhatsApp"
         ]} 
         speed="slow"
         className="bg-black border-none py-2.5"
       />
 
+      {/* Collections Section */}
+      {collections.length > 0 && (
+        <section className="mt-8 py-16 px-4 md:px-6">
+          <div className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-bold tracking-[0.4em] text-brand-400 uppercase">Acervo</span>
+              <h2 className="font-logo text-4xl md:text-6xl tracking-tighter uppercase mt-2 text-brand-950">Coleções em Destaque</h2>
+            </div>
+            <Link 
+              href="/colecoes" 
+              className="text-[10px] font-bold tracking-widest uppercase border-b border-brand-900 pb-0.5 hover:text-brand-500 hover:border-brand-500 transition-colors w-fit"
+            >
+              Ver Todas as Coleções
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {collections.slice(0, 3).map((collection) => (
+              <Link
+                key={collection.id}
+                href={`/colecoes/${collection.slug}`}
+                className="group block"
+              >
+                <div className="relative aspect-[4/5] overflow-hidden mb-6 bg-brand-50">
+                  {collection.cover_image ? (
+                    <Image
+                      src={collection.cover_image}
+                      alt={collection.title}
+                      fill
+                      className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-brand-100" />
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <span className="bg-white text-brand-950 px-8 py-4 text-[10px] font-bold tracking-[0.3em] uppercase backdrop-blur-sm bg-white/90">
+                      Explorar
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  {collection.subtitle && (
+                    <span className="text-[10px] font-bold tracking-[0.3em] text-brand-400 uppercase block">
+                      {collection.subtitle}
+                    </span>
+                  )}
+                  <h3 className="font-logo text-3xl tracking-tighter uppercase text-brand-950 group-hover:text-brand-600 transition-colors">
+                    {collection.title}
+                  </h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Page Title & Filter Row - Inspired by Dime */}
-      <section className="px-4 md:px-6 py-4">
+      <section id="shop" className="px-4 md:px-6 py-4 mt-8 border-t border-gray-100">
         {/* Horizontal Filters Row */}
         <div className="flex items-center gap-6 border-b border-gray-100 pb-2">
           <button
@@ -195,32 +255,13 @@ export default function HomePage() {
 
         {filteredProducts.length === 0 && !loading && (
           <div className="text-center py-24">
-            <p className="text-brand-400 uppercase text-[10px] tracking-widest mb-4">No pieces found</p>
+            <p className="text-brand-400 uppercase text-[10px] tracking-widest mb-4">Nenhuma peça encontrada</p>
             <button onClick={handleClearFilters} className="text-[10px] font-bold tracking-widest uppercase border-b border-brand-900 pb-1">
-              Show All
+              Mostrar Tudo
             </button>
           </div>
         )}
       </section>
-
-      {/* Collections Carousel - Moved below products */}
-      {collections.length > 0 && (
-        <section className="mt-8 border-t border-gray-100 py-16 bg-brand-50/30">
-          <div className="px-4 md:px-6 mb-8 flex justify-between items-end">
-            <div>
-              <p className="text-[10px] font-bold tracking-[0.3em] text-brand-400 uppercase mb-1">Curadoria</p>
-              <h2 className="text-3xl font-logo tracking-tighter uppercase text-brand-950">Explorar Coleções</h2>
-            </div>
-            <Link 
-              href="/colecoes" 
-              className="text-[10px] font-bold tracking-widest uppercase border-b border-brand-900 pb-0.5 hover:text-brand-500 hover:border-brand-500 transition-colors"
-            >
-              Ver Todas
-            </Link>
-          </div>
-          <CollectionsCarousel collections={collections} />
-        </section>
-      )}
 
       <FilterPanel
         isOpen={isFilterPanelOpen}

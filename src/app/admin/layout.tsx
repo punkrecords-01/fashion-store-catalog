@@ -11,7 +11,9 @@ import {
   Menu, 
   X,
   Plus,
-  Home
+  Home,
+  Inbox,
+  Upload
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { siteConfig } from '@/config/site'
@@ -54,6 +56,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
+    { href: '/admin/pendentes', icon: Inbox, label: 'Pendentes' },
+    { href: '/admin/importar', icon: Upload, label: 'Importar' },
     { href: '/admin/produtos', icon: Package, label: 'Peças' },
     { href: '/admin/colecoes', icon: FolderHeart, label: 'Coleções' },
   ]

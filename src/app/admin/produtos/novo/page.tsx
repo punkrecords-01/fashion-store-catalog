@@ -154,9 +154,9 @@ export default function NewProductPage() {
       if (error) throw error
 
       router.push('/admin/produtos')
-    } catch (error: any) {
-      console.error('Erro detalhado ao salvar:', error)
-      alert(`Erro ao salvar peça: ${error.message || 'Erro desconhecido'}`)
+    } catch (error) {
+      console.error('Erro ao salvar:', error)
+      alert('Erro ao salvar peça')
     } finally {
       setLoading(false)
     }
@@ -342,72 +342,6 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Preço */}
-        <div className="bg-white rounded-2xl p-4 border border-brand-100 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-brand-700 mb-1">
-                Preço *
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-500">R$</span>
-                <input
-                  type="text"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="0,00"
-                  className="w-full pl-12 pr-4 py-3 border border-brand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-900"
-                  required
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-brand-700 mb-1">
-                Preço original
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-500">R$</span>
-                <input
-                  type="text"
-                  value={originalPrice}
-                  onChange={(e) => setOriginalPrice(e.target.value)}
-                  placeholder="0,00"
-                  className="w-full pl-12 pr-4 py-3 border border-brand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-900"
-                />
-              </div>
-              <p className="text-xs text-brand-400 mt-1">Para mostrar desconto</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Status */}
-        <div className="bg-white rounded-2xl p-4 border border-brand-100">
-          <label className="block text-sm font-medium text-brand-700 mb-3">
-            Status
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {STATUSES.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setStatus(value)}
-                className={cn(
-                  'px-4 py-2 rounded-full text-sm font-medium transition-colors',
-                  status === value
-                    ? value === 'outlet' 
-                      ? 'bg-red-500 text-white' 
-                      : value === 'last_unit'
-                        ? 'bg-amber-500 text-white'
-                        : 'bg-green-500 text-white'
-                    : 'bg-brand-100 text-brand-700 hover:bg-brand-200'
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
         {/* ============================================ */}
         {/* NOVOS CAMPOS - FILTROS AVANÇADOS */}
         {/* ============================================ */}
@@ -524,6 +458,72 @@ export default function NewProductPage() {
                   pattern === value
                     ? 'bg-brand-900 text-white'
                     : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Preço */}
+        <div className="bg-white rounded-2xl p-4 border border-brand-100 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-brand-700 mb-1">
+                Preço *
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-500">R$</span>
+                <input
+                  type="text"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full pl-12 pr-4 py-3 border border-brand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-900"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-brand-700 mb-1">
+                Preço original
+              </label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-500">R$</span>
+                <input
+                  type="text"
+                  value={originalPrice}
+                  onChange={(e) => setOriginalPrice(e.target.value)}
+                  placeholder="0,00"
+                  className="w-full pl-12 pr-4 py-3 border border-brand-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-900"
+                />
+              </div>
+              <p className="text-xs text-brand-400 mt-1">Para mostrar desconto</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="bg-white rounded-2xl p-4 border border-brand-100">
+          <label className="block text-sm font-medium text-brand-700 mb-3">
+            Status
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {STATUSES.map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setStatus(value)}
+                className={cn(
+                  'px-4 py-2 rounded-full text-sm font-medium transition-colors',
+                  status === value
+                    ? value === 'outlet' 
+                      ? 'bg-red-500 text-white' 
+                      : value === 'last_unit'
+                        ? 'bg-amber-500 text-white'
+                        : 'bg-green-500 text-white'
+                    : 'bg-brand-100 text-brand-700 hover:bg-brand-200'
                 )}
               >
                 {label}

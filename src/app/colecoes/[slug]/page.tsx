@@ -93,11 +93,16 @@ export default function CollectionDetailPage({ params }: { params: { slug: strin
               <ChevronLeft className="w-4 h-4 mr-1" />
               Ver todas as coleções
             </Link>
-            <h1 className="font-display text-4xl md:text-6xl font-bold mb-4 max-w-2xl leading-[1.1]">
+            <h1 className="font-logo text-5xl md:text-7xl tracking-tighter uppercase mb-4 max-w-4xl leading-[0.9]">
               {collection.title}
             </h1>
+            {collection.subtitle && (
+              <p className="text-[10px] font-bold tracking-[0.4em] text-white/70 uppercase mb-4">
+                {collection.subtitle}
+              </p>
+            )}
             {collection.description && (
-              <p className="text-lg md:text-xl text-white/90 max-w-xl font-light leading-relaxed">
+              <p className="text-sm md:text-base text-white/90 max-w-xl font-light leading-relaxed uppercase tracking-wider">
                 {collection.description}
               </p>
             )}
@@ -105,116 +110,77 @@ export default function CollectionDetailPage({ params }: { params: { slug: strin
         </div>
       </div>
 
-      {/* Main Content (Blog style) */}
-      <div className="container-app mx-auto py-12 md:py-20">
-        <div className="max-w-3xl mx-auto space-y-12 md:space-y-20">
+      {/* Main Content (Editorial style) */}
+      <div className="container-app mx-auto py-16 md:py-24">
+        <div className="max-w-4xl mx-auto">
           {collection.content && collection.content.length > 0 ? (
-            collection.content.map((block, idx) => {
-              if (block.type === 'text') {
-                return (
-                  <div key={idx} className="prose prose-brand max-w-none">
-                    <p className="text-xl leading-relaxed text-brand-800 font-serif whitespace-pre-wrap break-words">
-                      {block.content}
-                    </p>
-                  </div>
-                )
-              }
-              
-              if (block.type === 'image') {
-                return (
-                  <div key={idx} className="space-y-3">
-                    <div className="relative aspect-video rounded-3xl overflow-hidden shadow-lg">
-                      <Image 
+            <div className="space-y-16 md:space-y-32">
+              {collection.content.map((block, idx) => {
+                if (block.type === 'text') {
+                  return (
+                    <div key={idx} className="max-w-2xl">
+                      <p className="text-xl md:text-2xl leading-relaxed text-brand-950 font-light whitespace-pre-wrap break-words">
+                        {block.content}
+                      </p>
+                    </div>
+                  )
+                }
+                
+                if (block.type === 'image') {
+                  return (
+                    <div key={idx} className="space-y-4">
+                      <div className="relative aspect-[4/5] overflow-hidden bg-brand-50">
+                        <Image 
+                          src={block.url} 
+                          alt={block.alt || collection.title} 
+                          fill 
+                          className="object-cover"
+                        />
+                      </div>
+                      {block.caption && (
+                        <p className="text-[10px] text-center text-brand-400 uppercase tracking-widest">
+                          {block.caption}
+                        </p>
+                      )}
+                    </div>
+                  )
+                }
+
+                if (block.type === 'shoppable_image') {
+                  const markersWithProducts = block.markers.map(m => ({
+                    ...m,
+                    product: products.find(p => p.id === m.productId)
+                  }))
+
+                  return (
+                    <div key={idx} className="space-y-6">
+                      <ShoppableImage 
                         src={block.url} 
                         alt={block.alt || collection.title} 
-                        fill 
-                        className="object-cover"
+                        markers={markersWithProducts} 
                       />
                     </div>
-                    {block.caption && (
-                      <p className="text-sm text-center text-brand-500 italic">
-                        {block.caption}
-                      </p>
-                    )}
-                  </div>
-                )
-              }
+                  )
+                }
 
-              if (block.type === 'shoppable_image') {
-                const markersWithProducts = block.markers.map(m => ({
-                  ...m,
-                  product: products.find(p => p.id === m.productId)
-                }))
-
-                return (
-                  <div key={idx} className="space-y-4">
-                    <ShoppableImage 
-                      src={block.url} 
-                      alt={block.alt || collection.title} 
-                      markers={markersWithProducts} 
-                    />
-                  </div>
-                )
-              }
-
-              return null
-            })
-          ) : (
-            // Placeholder content for visualization
-            <div className="space-y-12 md:space-y-20">
-              <div className="prose prose-brand max-w-none">
-                <p className="text-xl leading-relaxed text-brand-800 font-serif whitespace-pre-wrap break-words">
-                  Bem-vinda à nossa nova curadoria. Esta coleção foi pensada para mulheres que buscam 
-                  aliar o conforto do dia a dia com a sofisticação de peças atemporais. Cada item aqui 
-                  foi selecionado para contar uma história de elegância e personalidade.
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                <div className="relative aspect-video rounded-3xl overflow-hidden shadow-lg bg-brand-100 flex items-center justify-center">
-                  <span className="text-brand-400 font-medium">FOTO EDITORIAL (PLACEHOLDER)</span>
-                </div>
-                <p className="text-sm text-center text-brand-500 italic">
-                  Mood: Elegância Urbana - Inverno 2026
-                </p>
-              </div>
-
-              <div className="prose prose-brand max-w-none">
-                <p className="text-lg leading-relaxed text-brand-700 font-serif whitespace-pre-wrap break-words">
-                  Abaixo, você pode ver como nossas peças se comportam no corpo. Explore as marcações 
-                  nas fotos para descobrir os detalhes de cada produto e como eles se complementam 
-                  em looks completos.
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                <div className="relative aspect-[4/5] rounded-3xl overflow-hidden shadow-lg bg-brand-200 flex items-center justify-center">
-                   <div className="text-center">
-                      <p className="text-brand-600 font-bold mb-2">FOTO COM MARCAÇÕES (SHOPPABLE IMAGE)</p>
-                      <div className="flex justify-center gap-4">
-                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg"><Shirt className="w-4 h-4 text-brand-900" /></div>
-                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-lg"><Shirt className="w-4 h-4 text-brand-900" /></div>
-                      </div>
-                   </div>
-                </div>
-              </div>
-
-              <div className="prose prose-brand max-w-none">
-                <p className="text-md leading-relaxed text-brand-600 italic">
-                  * Esta é uma visualização de exemplo. Você pode configurar este conteúdo real no campo "content" da tabela "collections" no Supabase.
-                </p>
-              </div>
+                return null
+              })}
             </div>
+          ) : (
+             <div className="text-center py-12 max-w-xl mx-auto border-y border-brand-100 italic font-light text-brand-400">
+                Explore as peças desta curadoria exclusiva abaixo.
+             </div>
           )}
         </div>
       </div>
 
       {/* Product Grid Section (Bottom) */}
-      <div className="bg-brand-50/50 py-16 md:py-24 border-t border-brand-100">
+      <div className="bg-white py-16 md:py-32 border-t border-brand-50">
         <div className="container-app mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-display text-3xl font-semibold mb-2">Peças da Coleção</h2>
-            <div className="w-12 h-1 bg-brand-400 mx-auto rounded-full" />
+          <div className="mb-16 flex flex-col items-center text-center">
+            <span className="text-[10px] font-bold tracking-[0.4em] text-brand-400 uppercase mb-4">Compre o Look</span>
+            <h2 className="font-logo text-4xl md:text-6xl tracking-tighter uppercase text-brand-950">Peças da Coleção</h2>
+            <div className="mt-8 w-16 h-px bg-brand-950" />
           </div>
 
           {products.length > 0 ? (
