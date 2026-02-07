@@ -17,7 +17,7 @@ export type ProductCategory =
   | 'bijuteria'
   | 'acessorio'
 
-export type ProductSize = 'PP' | 'P' | 'M' | 'G' | 'GG' | 'U' // U = Único
+export type ProductSize = 'PP' | 'P' | 'M' | 'G' | 'GG' | 'U' | '33' | '34' | '35' | '36' | '37' | '38' | '39' | '40' | '41' | '42' // U = Único
 
 export type ProductColor =
   | 'preto'
@@ -260,7 +260,7 @@ export const STATUS_LABELS: Record<ProductStatus, string> = {
   sold: 'Vendido',
 }
 
-export const SIZE_ORDER: ProductSize[] = ['PP', 'P', 'M', 'G', 'GG', 'U']
+export const SIZE_ORDER: ProductSize[] = ['PP', 'P', 'M', 'G', 'GG', 'U', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42']
 
 // ============================================
 // NOVOS LABELS PARA FILTROS AVANÇADOS

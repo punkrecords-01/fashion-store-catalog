@@ -23,8 +23,10 @@ import {
 const SIZE_MAP: Record<string, ProductSize> = {
   // Padrão
   'pp': 'PP', 'p': 'P', 'm': 'M', 'g': 'G', 'gg': 'GG', 'u': 'U',
-  // Numéricos BR
+  // Numéricos BR (Roupas)
   '34': 'PP', '36': 'P', '38': 'M', '40': 'G', '42': 'GG', '44': 'GG',
+  // Calçados (Mapeamos para o número literal se necessário, mas aqui vamos manter o padrão)
+  '35': '35' as any, '37': '37' as any, '39': '39' as any,
   // Inglês
   'xs': 'PP', 'xsmall': 'PP', 'extra small': 'PP',
   's': 'P', 'small': 'P', 'pequeno': 'P', 'pequena': 'P',

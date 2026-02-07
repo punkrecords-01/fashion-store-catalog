@@ -17,14 +17,16 @@ import { cn } from '@/lib/utils'
 
 type ViewMode = 'tinder' | 'list'
 
-const SOURCE_ICONS: Record<string, typeof MessageSquare> = {
+const SOURCE_ICONS: Record<string, any> = {
   whatsapp: MessageSquare,
+  telegram: MessageSquare,
   csv: FileSpreadsheet,
   manual: Keyboard,
 }
 
 const SOURCE_LABELS: Record<string, string> = {
   whatsapp: 'WhatsApp',
+  telegram: 'Telegram',
   csv: 'CSV/Excel',
   manual: 'Manual',
 }

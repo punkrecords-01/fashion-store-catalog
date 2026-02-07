@@ -47,17 +47,16 @@ export async function POST(request: NextRequest) {
 
     if (existing) return NextResponse.json({ ok: true })
 
+    const botToken = process.env.TELEGRAM_BOT_TOKEN
+    
     // Se tiver foto, o Telegram manda uma lista de tamanhos, pegamos o maior
     const rawImages: string[] = []
+    let debugPhoto = ''
+
     if (message.photo) {
-      // O Telegram envia várias versões da foto, a última (array.length - 1) é a de maior resolução
       const photo = message.photo[message.photo.length - 1]
       const fileId = photo.file_id
       
-      // Construir a URL do arquivo no servidor do Telegram
-      // Nota: Para ser definitivo, o ideal seria baixar e subir no Supabase Storage.
-      // Mas por enquanto, vamos pegar o link direto para o admin ver.
-      const botToken = process.env.TELEGRAM_BOT_TOKEN
       try {
         const fileResponse = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`)
         const fileData = await fileResponse.json()
@@ -66,10 +65,11 @@ export async function POST(request: NextRequest) {
           const filePath = fileData.result.file_path
           const imageUrl = `https://api.telegram.org/file/bot${botToken}/${filePath}`
           rawImages.push(imageUrl)
-          console.log('📸 Foto capturada:', imageUrl)
+        } else {
+          debugPhoto = `[Erro Telegram: ${fileData.description}]`
         }
       } catch (err) {
-        console.error('❌ Erro ao buscar link da foto no Telegram:', err)
+        debugPhoto = `[Erro Fetch: ${err instanceof Error ? err.message : 'Unknown'}]`
       }
     }
 
@@ -80,12 +80,12 @@ export async function POST(request: NextRequest) {
     const { error } = await supabase
       .from('pending_items')
       .insert({
-        raw_text: text || null,
+        raw_text: text + (debugPhoto ? '\n' + debugPhoto : ''),
         raw_images: rawImages,
         ...parseResult,
         source: 'telegram',
         source_message_id: messageId,
-        source_phone: chatId.toString(), // No Telegram usamos o ID do Chat
+        source_phone: chatId.toString(),
         status: 'pending',
       })
 
