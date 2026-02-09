@@ -1,0 +1,21 @@
+nome,referencia,marca,categoria,cores,tamanhos,preco,preco_original,tecido,descricao,quantidade
+"Calça boca larga R$1409 34 36 amíssima algodão ref 634088",634088,Amissima,calça,"verde militar","34;36","R$1409",,algodão,"Calça boca larga com drapeado lateral",10
+"Vestido midi floral R$ 349,00 Ref: 12345",12345,Farm,vestido,"floral","P;M","R$349,00",,viscose,"Vestido midi floral com bolsos discretos",5
+,"56890",Zara,blusa,branco,"P;M;G",R$89.90,,algodão,"Blusa básica com decote V",30
+"Bolsa bucket preto em couro sintético",BKT001,Schutz,bolsa,preto,,R$2599,,couro_sintetico,"Bolsa bucket com alça regulável",4
+"Scarpin bico fino 38 preto",,Schutz,acessorio,preto,38,R$359, ,couro,"Scarpin clássico para ocasiões formais",8
+"Conjunto tricot cropped + saia",CNJ100,Maria Filo,conjunto,bege,"P;M;G",R$489, R$549,tricot,"Conjunto tricot elegante",6
+"Shorts jeans destroyed 36 ref 88990",88990,Colcci,shorts,azul,36,R$129, ,jeans,"Shorts jeans com barra desfiada",12
+"Macacão pantacourt R$ 229,00 viscose ref 4455",4455,,macacao,azul claro,M;G,R$229,00,,viscose,"Macacão pantacourt com pregas frontais",7
+"Cinto de couro fino caramelo",CIN123,ArezzO,cinto,caramelo,,R$149,,couro,"Cinto fino para compor looks",15
+"Blazer manga longa ombro estruturado",BLA900,Animale,blusa,preto,G,L,R$899,00,,crepe,"Blazer estruturado com forro acetinado",3
+"Saia assimétrica verde oliva - ref 5566",5566,Tigresse,saia,verde oliva,PP;P,R$219,00,,cetim,"Saia com caimento fluido e fenda lateral",9
+"Bolsa tiracolo pequena - sem marca",BAGNO, ,bolsa,rosa,,R$129,,sintetico,"Bolsa tiracolo para uso diário",20
+"Vestido longo liso preto R$ 499,00",7788,LeLis,vestido,preto,M,L,R$499,00,,seda,"Vestido longo liso com decote nadador",2
+"Tênis branco plataforma 37",TNS037,ArezzO,acessorio,branco,37,R$329,,sintetico,"Tênis casual com solado plataforma",11
+"Body rendado manga longa ref 9987",9987,Cris Barros,blusa,branco,S;M,R$199,,renda,"Body rendado com costura invisível",14
+"Calça legging poliamida preta R$79,90",LEG777,,calça,preto,P;M,R$79,90,,poliester,"Legging de treino com cós alto",25
+"Conjunto praia cropped + shorts estampado",PLA202,Farm,conjunto,multicolor,P;M;G,R$189,,viscose,"Conjunto praia com estampa exclusiva",18
+"Camisa oversized linho natural",CAM321,BobStore,blusa,nude,M;G,R$299,,linho,"Camisa oversized em linho fresco",6
+"Sandália salto bloco caramelo 35",SAN035,Schutz,acessorio,caramelo,35,R$249,,couro,"Sandália confortável com tiras largas",7
+"Saia plissada midi xadrez ref 1122",1122,Mixed,saia,xadrez,P;M,R$189,00,,polyester,"Saia plissada com cós elástico",13
