@@ -346,37 +346,100 @@ function generateWarnings(result: Partial<ParseResult>): string[] {
 }
 
 /**
- * Tenta extrair nome "inteligente" do texto.
- * Remove partes que foram parseadas (ref, tamanhos, preço) e pega a parte restante significativa.
+ * Extrai o NOME do produto de forma inteligente.
+ * Estratégia: pegar só as primeiras palavras que descrevem "o que é" o produto,
+ * antes de qualquer dado técnico (preço, tamanho, cor, tecido, referência).
+ * 
+ * Exemplos de entrada → saída:
+ *   "Vestido floral R$ 340,00 tamanhos p m e g, verde estampado floral REF 456007 tecido algodao"
+ *   → "Vestido Floral"
+ *
+ *   "Scarpin Couro Preto R$ 590,00. Tamanhos: 35 ao 39."
+ *   → "Scarpin Couro"
+ *
+ *   "Bolsa Bucket Caramelo R$ 280"
+ *   → "Bolsa Bucket"
  */
 function parseName(text: string): string | undefined {
-  // Remove referência
-  let cleaned = text.replace(/(?:ref\.?|referência|referencia|código|codigo|cod\.?|#)\s*:?\s*[A-Z0-9\-\.]+/gi, '')
-  // Remove preços
-  cleaned = cleaned.replace(/R\$\s*[\d.,]+/g, '')
-  cleaned = cleaned.replace(/(?:preço|preco|valor|por|de)\s*:?\s*R?\$?\s*[\d.,]+/gi, '')
-  
-  // Remove seções técnicas inteiras (Tamanhos: ..., Cores: ..., Cor: ...)
-  cleaned = cleaned.replace(/(?:tamanhos?|tam\.?|cores?|cor)\s*:?\s*.*?(?=\.|$|,)/gi, '')
-  
-  // Remove faixas de números (Sapatos: 35 ao 39, 35-39)
-  cleaned = cleaned.replace(/\b\d{2}\s*(?:ao|a|-|à)\s*\d{2}\b/g, '')
+  const normalized = text.toLowerCase().trim()
 
-  // Remove tamanhos isolados (letras P, M, G...)
-  cleaned = cleaned.replace(/\b(tam(?:anho)?s?\.?\s*:?\s*)?([pP]{1,2}|[mM]|[gG]{1,2}|[uU])(?:\s*[,\/\-]\s*(?:[pP]{1,2}|[mM]|[gG]{1,2}|[uU]))*\b/gi, '')
+  // Montar uma lista de todas as palavras "técnicas" que devem PARAR a extração do nome
+  const stopWords = new Set<string>()
   
-  // Remove pontos, virgulas e espaços extras que sobraram
-  cleaned = cleaned.replace(/\s*,\s*/g, ', ').replace(/\s*[\.\:\-]\s*$/g, '').replace(/\s+/g, ' ').trim()
-  // Remove vírgulas no início/fim
-  cleaned = cleaned.replace(/^[,\s]+|[,\s]+$/g, '').trim()
+  // Cores
+  for (const key of Object.keys(COLOR_MAP)) {
+    key.split(' ').forEach(w => { if (w.length > 2) stopWords.add(w) })
+  }
+  
+  // Tecidos
+  for (const key of Object.keys(FABRIC_MAP)) {
+    key.split(' ').forEach(w => { if (w.length > 2) stopWords.add(w) })
+  }
+  
+  // Marcas
+  for (const key of Object.keys(BRAND_MAP)) {
+    key.split(' ').forEach(w => { if (w.length > 2) stopWords.add(w) })
+  }
 
-  if (cleaned.length < 3) return undefined
+  // Palavras-chave técnicas que indicam fim do nome
+  const technicalWords = [
+    'tamanho', 'tamanhos', 'tam', 'cores', 'cor', 'tecido', 'material',
+    'ref', 'referência', 'referencia', 'código', 'codigo', 'cod',
+    'preço', 'preco', 'valor', 'por',
+  ]
+  technicalWords.forEach(w => stopWords.add(w))
+
+  // Categorias (evitar duplicar no nome)
+  for (const key of Object.keys(CATEGORY_MAP)) {
+    // Não adicionar a categoria como stop word — ela FAZ parte do nome (ex: "Vestido")
+    // Só adicionamos se aparecer pela SEGUNDA vez
+  }
+
+  // Separar o texto em palavras
+  const words = text.replace(/[.,;:!?\-\/]+/g, ' ').split(/\s+/).filter(Boolean)
+  
+  const nameWords: string[] = []
+  let foundCategory = false
+
+  for (const word of words) {
+    const lower = word.toLowerCase()
+
+    // Parar se encontrar preço (R$ ou número > 2 dígitos que parece preço)
+    if (/^r\$$/i.test(word) || /^\d{2,}[.,]\d{2}$/.test(word)) break
+
+    // Parar se encontrar um tamanho isolado (P, M, G, GG, PP)
+    if (/^(pp|p|m|g|gg|u|xs|s|l|xl)$/i.test(word) && nameWords.length > 0) break
+
+    // Parar se encontrar número puro (referência, tamanho numérico)
+    if (/^\d{3,}$/.test(word)) break
+    if (/^\d{2}$/.test(word) && nameWords.length > 0) break
+
+    // Parar se encontrar palavra técnica
+    if (technicalWords.includes(lower)) break
+
+    // Parar se encontrar cor/tecido/marca (mas só depois de já ter pelo menos 1 palavra de nome)
+    if (nameWords.length > 0 && stopWords.has(lower)) break
+
+    // Verificar se é a categoria — a primeira menção entra no nome, a segunda não
+    const isCategoryWord = Object.keys(CATEGORY_MAP).includes(lower)
+    if (isCategoryWord) {
+      if (foundCategory) break // Segunda menção da categoria, parar
+      foundCategory = true
+    }
+
+    nameWords.push(word)
+  }
+
+  if (nameWords.length === 0) return undefined
 
   // Capitalizar
-  return cleaned
-    .split(' ')
+  const name = nameWords
     .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(' ')
+    .replace(/^[,\s]+|[,\s]+$/g, '')
+    .trim()
+
+  return name.length >= 3 ? name : undefined
 }
 
 // ============================================
