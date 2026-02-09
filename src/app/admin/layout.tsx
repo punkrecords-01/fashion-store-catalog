@@ -11,7 +11,9 @@ import {
   Menu, 
   X,
   Plus,
-  Home
+  Home,
+  Inbox,
+  Upload
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { siteConfig } from '@/config/site'
@@ -28,7 +30,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       
-      if (!session) {
+      if (!session && pathname !== '/admin/login') {
         router.push('/admin/login')
         return
       }
@@ -37,7 +39,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     checkAuth()
-  }, [router])
+  }, [router, pathname])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -54,6 +56,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { href: '/admin', icon: LayoutGrid, label: 'Dashboard' },
+    { href: '/admin/pendentes', icon: Inbox, label: 'Pendentes' },
+    { href: '/admin/importar', icon: Upload, label: 'Importar' },
     { href: '/admin/produtos', icon: Package, label: 'Peças' },
     { href: '/admin/colecoes', icon: FolderHeart, label: 'Coleções' },
   ]
@@ -68,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         >
           <Menu className="w-6 h-6" />
         </button>
-        <span className="font-display font-semibold">{siteConfig.name}</span>
+        <span className="font-logo text-lg tracking-widest text-brand-950 uppercase">it&apos;s couture</span>
         <Link href="/admin/produtos/novo" className="p-2 text-brand-900">
           <Plus className="w-6 h-6" />
         </Link>
@@ -89,7 +93,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         <div className="flex items-center justify-between h-16 px-4 border-b border-brand-100">
-          <span className="font-display font-semibold">{siteConfig.name}</span>
+          <span className="font-logo text-lg tracking-widest text-brand-950 uppercase">it&apos;s couture</span>
           <button
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden p-2 text-brand-600"

@@ -27,6 +27,7 @@ Funciona como camada de **descoberta + decisão**.
 ### Objetivos secundários
 - Criar base para recomendações futuras
 - Criar produto replicável para outras lojas físicas
+- **Integração com Google Gemini AI** para cadastro inteligente via Telegram
 
 ---
 
