@@ -23,10 +23,11 @@ import {
 const SIZE_MAP: Record<string, ProductSize> = {
   // Padrão
   'pp': 'PP', 'p': 'P', 'm': 'M', 'g': 'G', 'gg': 'GG', 'u': 'U',
-  // Numéricos BR (Roupas)
-  '34': 'PP', '36': 'P', '38': 'M', '40': 'G', '42': 'GG', '44': 'GG',
-  // Calçados (Mapeamos para o número literal se necessário, mas aqui vamos manter o padrão)
-  '35': '35' as any, '37': '37' as any, '39': '39' as any,
+  // Numéricos BR (Mantemos o número para ser mais fiel ao que o usuário digitou)
+  '34': '34' as any, '36': '36' as any, '38': '38' as any, '40': '40' as any, 
+  '42': '42' as any, '44': '44' as any, '46': '46' as any, '48': '48' as any,
+  // Calçados
+  '33': '33' as any, '35': '35' as any, '37': '37' as any, '39': '39' as any,
   // Inglês
   'xs': 'PP', 'xsmall': 'PP', 'extra small': 'PP',
   's': 'P', 'small': 'P', 'pequeno': 'P', 'pequena': 'P',
@@ -157,7 +158,10 @@ function parseSizes(text: string): ProductSize[] {
   for (const [key, value] of Object.entries(SIZE_MAP)) {
     // Evitar falsos positivos com letras isoladas - só para termos com > 1 char
     if (key.length <= 1) continue
-    if (normalized.includes(key)) {
+    
+    // Usar regex com word boundary para evitar pegar "40" dentro de "634088"
+    const regex = new RegExp(`\\b${key}\\b`, 'i')
+    if (regex.test(normalized)) {
       sizes.add(value)
     }
   }
