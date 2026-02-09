@@ -160,34 +160,42 @@ function TinderCard({
   const colorOptions = Object.entries(COLOR_LABELS).map(([value, label]) => ({ value, label }))
   const sizeOptions = SIZE_ORDER.map((s) => ({ value: s, label: s }))
   const fabricOptions = Object.entries(FABRIC_LABELS).map(([value, label]) => ({ value, label }))
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
 
     setUploading(true)
     const supabase = createClient()
+    const newUrls: string[] = []
     
     try {
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
-      const filePath = `manual/${fileName}`
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+        const filePath = `manual/${fileName}`
 
-      const { error: uploadError } = await supabase.storage
-        .from('products')
-        .upload(filePath, file)
+        const { error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(filePath, file)
 
-      if (uploadError) throw uploadError
+        if (uploadError) throw uploadError
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('products')
-        .getPublicUrl(filePath)
+        const { data: { publicUrl } } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath)
+        
+        newUrls.push(publicUrl)
+      }
 
-      const newImages = [...(item.raw_images || []), publicUrl]
-      onUpdateImages(newImages)
+      onUpdateImages([...(item.raw_images || []), ...newUrls])
+      if (newUrls.length > 0) {
+        setActiveImageIndex((item.raw_images?.length || 0))
+      }
     } catch (err) {
       console.error('Upload error:', err)
-      alert('Erro ao subir imagem')
+      alert('Erro ao subir imagem(ns)')
     } finally {
       setUploading(false)
     }
@@ -197,6 +205,9 @@ function TinderCard({
     const newImages = [...(item.raw_images || [])]
     newImages.splice(index, 1)
     onUpdateImages(newImages)
+    if (activeImageIndex >= newImages.length) {
+      setActiveImageIndex(Math.max(0, newImages.length - 1))
+    }
   }
 
   return (
@@ -224,19 +235,29 @@ function TinderCard({
         {item.raw_images && item.raw_images.length > 0 ? (
           <div className="aspect-square bg-brand-100 relative overflow-hidden">
             <img
-              src={item.raw_images[0]}
+              src={item.raw_images[activeImageIndex] || item.raw_images[0]}
               alt="Produto"
               className="w-full h-full object-cover"
             />
-            {item.raw_images.length > 1 && (
-              <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
-                +{item.raw_images.length - 1} fotos
-              </span>
-            )}
+            
+            {/* Dots / Thumbnails Overlay */}
+            <div className="absolute bottom-16 left-0 right-0 flex justify-center gap-1.5 p-2 bg-gradient-to-t from-black/20 to-transparent">
+              {item.raw_images.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveImageIndex(i)}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-all",
+                    i === activeImageIndex ? "bg-white w-4" : "bg-white/50"
+                  )}
+                />
+              ))}
+            </div>
             
             <button 
-              onClick={() => removeImage(0)}
-              className="absolute top-2 right-2 p-2 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => removeImage(activeImageIndex)}
+              className="absolute top-2 right-2 p-2 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              title="Remover foto atual"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -255,10 +276,10 @@ function TinderCard({
         )}
 
         {/* Upload Button */}
-        <label className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur shadow-lg border border-brand-100 rounded-full cursor-pointer hover:bg-white transition-colors">
+        <label className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur shadow-lg border border-brand-100 rounded-full cursor-pointer hover:bg-white transition-colors z-20">
           <Upload className="w-4 h-4 text-brand-600" />
           <span className="text-xs font-semibold text-brand-900">
-            {uploading ? 'Subindo...' : item.raw_images?.length ? 'Trocar/Add' : 'Incluir Foto'}
+            {uploading ? 'Subindo...' : item.raw_images?.length ? 'Trocar/Add' : 'Incluir Foto(s)'}
           </span>
           <input 
             type="file" 
@@ -266,9 +287,28 @@ function TinderCard({
             className="hidden" 
             onChange={handleFileChange}
             disabled={uploading}
+            multiple
           />
         </label>
       </div>
+
+      {/* Thumbnails strip if multiple */}
+      {item.raw_images && item.raw_images.length > 1 && (
+        <div className="px-4 py-2 flex gap-2 overflow-x-auto bg-white border-b border-brand-50 no-scrollbar">
+          {item.raw_images.map((img, i) => (
+            <button
+              key={i}
+              onClick={() => setActiveImageIndex(i)}
+              className={cn(
+                "w-12 h-12 rounded-lg object-cover flex-shrink-0 border-2 transition-all",
+                i === activeImageIndex ? "border-brand-900 scale-105" : "border-transparent opacity-60"
+              )}
+            >
+              <img src={img} alt="" className="w-full h-full object-cover rounded-md" />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Raw text */}
       {item.raw_text && (
