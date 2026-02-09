@@ -91,6 +91,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ status: 'rejected' })
     }
 
+    if (action === 'reject_all') {
+      const { error } = await supabase
+        .from('pending_items')
+        .update({
+          status: 'rejected',
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('status', 'pending')
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 })
+      }
+
+      return NextResponse.json({ status: 'bulk_rejected' })
+    }
+
     return NextResponse.json({ error: 'Ação inválida' }, { status: 400 })
   } catch (error) {
     console.error('Pending items error:', error)

@@ -456,6 +456,28 @@ export default function PendingItemsPage() {
     }
   }
 
+  const handleRejectAll = async () => {
+    if (!confirm('Tem certeza que deseja rejeitar TODOS os itens pendentes?')) return
+    
+    setProcessing(true)
+    try {
+      const res = await fetch('/api/pending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reject_all' }),
+      })
+
+      if (res.ok) {
+        setItems([])
+        alert('Fila limpa com sucesso!')
+      }
+    } catch (err) {
+      console.error('Reject all error:', err)
+    } finally {
+      setProcessing(false)
+    }
+  }
+
   const currentItem = items[currentIndex]
   const pendingCount = items.filter(i => i.status === 'pending').length
 
@@ -507,19 +529,32 @@ export default function PendingItemsPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 mb-6 overflow-x-auto">
-        {(['pending', 'approved', 'rejected', 'all'] as const).map((f) => (
+      <div className="flex items-center justify-between mb-6 gap-4">
+        <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          {(['pending', 'approved', 'rejected', 'all'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={cn(
+                'px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors',
+                filter === f ? 'bg-brand-900 text-white' : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
+              )}
+            >
+              {f === 'pending' ? '⏳ Pendentes' : f === 'approved' ? '✅ Aprovados' : f === 'rejected' ? '❌ Rejeitados' : '📋 Todos'}
+            </button>
+          ))}
+        </div>
+
+        {filter === 'pending' && items.length > 0 && (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={cn(
-              'px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-colors',
-              filter === f ? 'bg-brand-900 text-white' : 'bg-brand-100 text-brand-600 hover:bg-brand-200'
-            )}
+            onClick={handleRejectAll}
+            disabled={processing}
+            className="flex items-center gap-1 px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl text-xs font-medium transition-colors border border-red-100"
           >
-            {f === 'pending' ? '⏳ Pendentes' : f === 'approved' ? '✅ Aprovados' : f === 'rejected' ? '❌ Rejeitados' : '📋 Todos'}
+            <X className="w-3.5 h-3.5" />
+            Limpar Fila
           </button>
-        ))}
+        )}
       </div>
 
       {loading ? (
