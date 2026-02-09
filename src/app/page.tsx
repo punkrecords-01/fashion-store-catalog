@@ -123,64 +123,6 @@ export default function HomePage() {
         className="bg-black border-none py-2.5"
       />
 
-      {/* Collections Section */}
-      {collections.length > 0 && (
-        <section className="mt-8 py-16 px-4 md:px-6">
-          <div className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <span className="text-[10px] font-bold tracking-[0.4em] text-brand-400 uppercase">Acervo</span>
-              <h2 className="font-logo text-4xl md:text-6xl tracking-tighter uppercase mt-2 text-brand-950">Coleções em Destaque</h2>
-            </div>
-            <Link 
-              href="/colecoes" 
-              className="text-[10px] font-bold tracking-widest uppercase border-b border-brand-900 pb-0.5 hover:text-brand-500 hover:border-brand-500 transition-colors w-fit"
-            >
-              Ver Todas as Coleções
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {collections.slice(0, 3).map((collection) => (
-              <Link
-                key={collection.id}
-                href={`/colecoes/${collection.slug}`}
-                className="group block"
-              >
-                <div className="relative aspect-[4/5] overflow-hidden mb-6 bg-brand-50">
-                  {collection.cover_image ? (
-                    <Image
-                      src={collection.cover_image}
-                      alt={collection.title}
-                      fill
-                      className="object-cover transition-transform duration-1000 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-brand-100" />
-                  )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <span className="bg-white text-brand-950 px-8 py-4 text-[10px] font-bold tracking-[0.3em] uppercase backdrop-blur-sm bg-white/90">
-                      Explorar
-                    </span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  {collection.subtitle && (
-                    <span className="text-[10px] font-bold tracking-[0.3em] text-brand-400 uppercase block">
-                      {collection.subtitle}
-                    </span>
-                  )}
-                  <h3 className="font-logo text-3xl tracking-tighter uppercase text-brand-950 group-hover:text-brand-600 transition-colors">
-                    {collection.title}
-                  </h3>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
       {/* Page Title & Filter Row - Inspired by Dime */}
       <section id="shop" className="px-4 md:px-6 py-4 mt-8 border-t border-gray-100">
         {/* Horizontal Filters Row */}
@@ -242,7 +184,7 @@ export default function HomePage() {
       </section>
 
       {/* Full Width Catalog Grid */}
-      <section id="catalog" className="px-0 pb-24">
+      <section id="catalog" className="px-0 pb-12">
         {loading ? (
           <div className="grid gap-px bg-gray-50 border-t border-gray-50 grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4">
             {[...Array(24)].map((_, i) => (
@@ -262,6 +204,64 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      {/* Collections Section */}
+      {collections.length > 0 && (
+        <section className="py-16 px-4 md:px-6 border-t border-gray-100 mb-12">
+          <div className="mb-12 text-center md:text-left flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-bold tracking-[0.4em] text-brand-400 uppercase">Acervo</span>
+              <h2 className="font-logo text-4xl md:text-6xl tracking-tighter uppercase mt-2 text-brand-950">Coleções em Destaque</h2>
+            </div>
+            <Link 
+              href="/colecoes" 
+              className="text-[10px] font-bold tracking-widest uppercase border-b border-brand-900 pb-0.5 hover:text-brand-500 hover:border-brand-500 transition-colors w-fit"
+            >
+              Ver Todas as Coleções
+            </Link>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {collections.slice(0, 3).map((collection) => (
+              <Link
+                key={collection.id}
+                href={`/colecoes/${collection.slug}`}
+                className="group block"
+              >
+                <div className="relative aspect-[4/5] overflow-hidden mb-6 bg-brand-50">
+                  {collection.cover_image ? (
+                    <Image
+                      src={collection.cover_image}
+                      alt={collection.title}
+                      fill
+                      className="object-cover transition-transform duration-1000 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-brand-100" />
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <span className="bg-white text-brand-950 px-8 py-4 text-[10px] font-bold tracking-[0.3em] uppercase backdrop-blur-sm bg-white/90">
+                      Explorar
+                    </span>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  {collection.subtitle && (
+                    <span className="text-[10px] font-bold tracking-[0.3em] text-brand-400 uppercase block">
+                      {collection.subtitle}
+                    </span>
+                  )}
+                  <h3 className="font-logo text-3xl tracking-tighter uppercase text-brand-950 group-hover:text-brand-600 transition-colors">
+                    {collection.title}
+                  </h3>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <FilterPanel
         isOpen={isFilterPanelOpen}
