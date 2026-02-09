@@ -644,5 +644,20 @@ export async function parseProductSmart(rawText: string): Promise<ParseResult> {
     console.warn('⚠️ Gemini não disponível, usando parser manual')
   }
 
+  // Garantia final: se temos uma marca mas ela não está no nome, vamos anexar
+  // (útil tanto para o parser manual quanto se a IA esquecer)
+  if (manualResult.parsed_brand && manualResult.parsed_name) {
+    const brandLower = manualResult.parsed_brand.toLowerCase().replace('_', ' ')
+    const nameLower = manualResult.parsed_name.toLowerCase()
+    
+    if (!nameLower.includes(brandLower)) {
+      // Tentar encontrar a versão capitalizada da marca no BRAND_MAP
+      const displayBrand = Object.keys(BRAND_MAP).find(k => BRAND_MAP[k] === manualResult.parsed_brand) || manualResult.parsed_brand
+      const capitalizedBrand = displayBrand.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      
+      manualResult.parsed_name = `${manualResult.parsed_name} ${capitalizedBrand}`
+    }
+  }
+
   return manualResult
 }
