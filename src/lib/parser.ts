@@ -406,7 +406,8 @@ function parseName(text: string): string | undefined {
     const lower = word.toLowerCase()
 
     // Parar se encontrar preço (R$ ou número > 2 dígitos que parece preço)
-    if (/^r\$$/i.test(word) || /^\d{2,}[.,]\d{2}$/.test(word)) break
+    // Agora aceita R$1409 (sem espaço) ou R$ (separado)
+    if (/^r\$/i.test(word) || /^\d{2,}[.,]\d{2}$/.test(word)) break
 
     // Parar se encontrar um tamanho isolado (P, M, G, GG, PP)
     if (/^(pp|p|m|g|gg|u|xs|s|l|xl)$/i.test(word) && nameWords.length > 0) break
@@ -531,17 +532,20 @@ Texto do produto: `
 export async function parseWithGemini(rawText: string): Promise<Partial<ParseResult>> {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    console.warn('⚠️ GEMINI_API_KEY não configurada, usando parser manual')
+    console.warn('⚠️ GEMINI_API_KEY não configurada')
     return {}
   }
 
   try {
     const { GoogleGenerativeAI } = await import('@google/generative-ai')
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    // Usando 1.5 flash que é mais estável comercialmente por enquanto
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
     
+    console.log('🤖 Chamando Gemini para extração...')
     const result = await model.generateContent(GEMINI_PROMPT + rawText)
     const response = result.response.text()
+    console.log('🤖 Resposta Gemini:', response)
     
     // Limpar possíveis code blocks
     const jsonStr = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
