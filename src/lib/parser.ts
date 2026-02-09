@@ -355,10 +355,18 @@ function parseName(text: string): string | undefined {
   // Remove preços
   cleaned = cleaned.replace(/R\$\s*[\d.,]+/g, '')
   cleaned = cleaned.replace(/(?:preço|preco|valor|por|de)\s*:?\s*R?\$?\s*[\d.,]+/gi, '')
-  // Remove tamanhos isolados (quando agrupados)
-  cleaned = cleaned.replace(/\b(tam(?:anho)?s?\.?\s*:?\s*)?([pP]{1,2}|[mM]|[gG]{1,2}|[uU])(?:\s*[,\/\-]\s*(?:[pP]{1,2}|[mM]|[gG]{1,2}|[uU]))+\b/gi, '')
-  // Remove virgulas e espaços extras
-  cleaned = cleaned.replace(/\s*,\s*/g, ', ').replace(/\s+/g, ' ').trim()
+  
+  // Remove seções técnicas inteiras (Tamanhos: ..., Cores: ..., Cor: ...)
+  cleaned = cleaned.replace(/(?:tamanhos?|tam\.?|cores?|cor)\s*:?\s*.*?(?=\.|$|,)/gi, '')
+  
+  // Remove faixas de números (Sapatos: 35 ao 39, 35-39)
+  cleaned = cleaned.replace(/\b\d{2}\s*(?:ao|a|-|à)\s*\d{2}\b/g, '')
+
+  // Remove tamanhos isolados (letras P, M, G...)
+  cleaned = cleaned.replace(/\b(tam(?:anho)?s?\.?\s*:?\s*)?([pP]{1,2}|[mM]|[gG]{1,2}|[uU])(?:\s*[,\/\-]\s*(?:[pP]{1,2}|[mM]|[gG]{1,2}|[uU]))*\b/gi, '')
+  
+  // Remove pontos, virgulas e espaços extras que sobraram
+  cleaned = cleaned.replace(/\s*,\s*/g, ', ').replace(/\s*[\.\:\-]\s*$/g, '').replace(/\s+/g, ' ').trim()
   // Remove vírgulas no início/fim
   cleaned = cleaned.replace(/^[,\s]+|[,\s]+$/g, '').trim()
 
