@@ -377,8 +377,9 @@ function parseName(text: string): string | undefined {
   }
   
   // Marcas
+  const brandWords = new Set<string>()
   for (const key of Object.keys(BRAND_MAP)) {
-    key.split(' ').forEach(w => { if (w.length > 2) stopWords.add(w) })
+    key.split(' ').forEach(w => { if (w.length > 2) brandWords.add(w) })
   }
 
   // Palavras-chave técnicas que indicam fim do nome
@@ -417,7 +418,13 @@ function parseName(text: string): string | undefined {
     // Parar se encontrar palavra técnica
     if (technicalWords.includes(lower)) break
 
-    // Parar se encontrar cor/tecido/marca (mas só depois de já ter pelo menos 1 palavra de nome)
+    // Se encontrar uma marca, adiciona ao nome e PARA por ali (geralmente a marca encerra o título)
+    if (brandWords.has(lower)) {
+      nameWords.push(word)
+      break 
+    }
+
+    // Parar se encontrar cor ou tecido (mas só depois de já ter pelo menos 1 palavra de nome)
     if (nameWords.length > 0 && stopWords.has(lower)) break
 
     // Verificar se é a categoria — a primeira menção entra no nome, a segunda não
