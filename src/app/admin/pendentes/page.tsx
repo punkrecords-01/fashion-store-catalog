@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { 
   ArrowLeft, Check, X, Edit3, ChevronLeft, ChevronRight,
   AlertTriangle, Sparkles, MessageSquare, FileSpreadsheet, 
-  Keyboard, Image as ImageIcon, RefreshCw, Eye
+  Keyboard, Image as ImageIcon, RefreshCw, Eye, Upload, Trash2
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { 
@@ -131,14 +131,17 @@ function TinderCard({
   onReject,
   onEdit,
   animating,
+  onUpdateImages,
 }: {
   item: PendingItem
   onApprove: (item: PendingItem, editedData?: Record<string, unknown>) => void
   onReject: (item: PendingItem) => void
   onEdit: () => void
   animating: 'left' | 'right' | null
+  onUpdateImages: (urls: string[]) => void
 }) {
   const [editing, setEditing] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [editData, setEditData] = useState({
     name: item.parsed_name || '',
     category: item.parsed_category || '',
@@ -157,6 +160,44 @@ function TinderCard({
   const colorOptions = Object.entries(COLOR_LABELS).map(([value, label]) => ({ value, label }))
   const sizeOptions = SIZE_ORDER.map((s) => ({ value: s, label: s }))
   const fabricOptions = Object.entries(FABRIC_LABELS).map(([value, label]) => ({ value, label }))
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+    const supabase = createClient()
+    
+    try {
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`
+      const filePath = `manual/${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file)
+
+      if (uploadError) throw uploadError
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath)
+
+      const newImages = [...(item.raw_images || []), publicUrl]
+      onUpdateImages(newImages)
+    } catch (err) {
+      console.error('Upload error:', err)
+      alert('Erro ao subir imagem')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeImage = (index: number) => {
+    const newImages = [...(item.raw_images || [])]
+    newImages.splice(index, 1)
+    onUpdateImages(newImages)
+  }
 
   return (
     <div
@@ -179,27 +220,55 @@ function TinderCard({
       </div>
 
       {/* Images */}
-      {item.raw_images && item.raw_images.length > 0 ? (
-        <div className="aspect-square bg-brand-100 relative overflow-hidden">
-          <img
-            src={item.raw_images[0]}
-            alt="Produto"
-            className="w-full h-full object-cover"
-          />
-          {item.raw_images.length > 1 && (
-            <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
-              +{item.raw_images.length - 1} fotos
-            </span>
-          )}
-        </div>
-      ) : (
-        <div className="aspect-[4/3] bg-brand-50 flex items-center justify-center">
-          <div className="text-center text-brand-300">
-            <ImageIcon className="w-12 h-12 mx-auto mb-2" />
-            <p className="text-sm">Sem imagem</p>
+      <div className="relative group">
+        {item.raw_images && item.raw_images.length > 0 ? (
+          <div className="aspect-square bg-brand-100 relative overflow-hidden">
+            <img
+              src={item.raw_images[0]}
+              alt="Produto"
+              className="w-full h-full object-cover"
+            />
+            {item.raw_images.length > 1 && (
+              <span className="absolute bottom-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full">
+                +{item.raw_images.length - 1} fotos
+              </span>
+            )}
+            
+            <button 
+              onClick={() => removeImage(0)}
+              className="absolute top-2 right-2 p-2 bg-red-500/80 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="aspect-[4/3] bg-brand-50 flex flex-col items-center justify-center border-b border-brand-100">
+            {uploading ? (
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand-500 border-t-transparent" />
+            ) : (
+              <>
+                <ImageIcon className="w-12 h-12 text-brand-200 mb-2" />
+                <p className="text-sm text-brand-400">Sem imagem</p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Upload Button */}
+        <label className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur shadow-lg border border-brand-100 rounded-full cursor-pointer hover:bg-white transition-colors">
+          <Upload className="w-4 h-4 text-brand-600" />
+          <span className="text-xs font-semibold text-brand-900">
+            {uploading ? 'Subindo...' : item.raw_images?.length ? 'Trocar/Add' : 'Incluir Foto'}
+          </span>
+          <input 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            onChange={handleFileChange}
+            disabled={uploading}
+          />
+        </label>
+      </div>
 
       {/* Raw text */}
       {item.raw_text && (
@@ -456,6 +525,22 @@ export default function PendingItemsPage() {
     }
   }
 
+  const handleUpdateImages = async (itemId: string, newUrls: string[]) => {
+    // Atualizar no banco
+    const { error } = await supabase
+      .from('pending_items')
+      .update({ raw_images: newUrls })
+      .eq('id', itemId)
+
+    if (error) {
+      console.error('Error updating images in DB:', error)
+      return
+    }
+
+    // Atualizar no estado local
+    setItems(items.map(item => item.id === itemId ? { ...item, raw_images: newUrls } : item))
+  }
+
   const handleRejectAll = async () => {
     if (!confirm('Tem certeza que deseja rejeitar TODOS os itens pendentes?')) return
     
@@ -603,6 +688,7 @@ export default function PendingItemsPage() {
               onApprove={handleApprove}
               onReject={handleReject}
               onEdit={() => {}}
+              onUpdateImages={(urls) => handleUpdateImages(currentItem.id, urls)}
               animating={animating}
             />
           )}
