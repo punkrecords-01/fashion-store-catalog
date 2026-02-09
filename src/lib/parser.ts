@@ -499,10 +499,11 @@ Extraia informações estruturadas do texto abaixo sobre um produto de moda.
 Responda APENAS com JSON válido, sem markdown, sem explicações, sem code blocks.
 
 REGRAS IMPORTANTES PARA O "name":
-- O nome deve ser CURTO e descritivo, apenas o tipo de peça + modelo/estilo
-- NÃO inclua preço, tamanho, cor, tecido, referência ou marca no nome
-- Exemplos bons: "Vestido Midi Floral", "Calça Boca Larga", "Scarpin Bico Fino", "Bolsa Bucket"
-- Exemplos RUINS: "Vestido Midi Floral R$340", "Calça Boca Larga Amissima Algodão"
+- O nome deve ser CURTO e descritivo, preferencialmente incluindo a marca se disponível.
+- Formato sugerido: "Tipo da Peça [NOME DA MARCA] [Detalhe Curto]"
+- NÃO inclua preço, tamanho, cor, tecido ou referência no nome
+- Exemplos bons: "Vestido FARM Floral", "Calça Amissima Boca Larga", "Scarpin Schutz"
+- Exemplos RUINS: "Vestido Midi Floral R$340", "Calça Amissima Algodão Ref 123"
 
 REGRAS PARA "description":
 - Crie uma descrição curta e elegante (1-2 frases) para o catálogo, como se fosse uma loja de moda sofisticada
