@@ -74,8 +74,16 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     
-    // Parse com XLSX (suporta CSV e Excel)
-    const workbook = XLSX.read(buffer, { type: 'buffer' })
+    // Tentar detectar se é um CSV e corrigir o encoding
+    let workbook;
+    if (file.name.endsWith('.csv')) {
+      // Tentar ler como UTF-8 primeiro, se falhar ou parecer estranho, XLSX deve lidar com o buffer
+      const text = buffer.toString('utf8');
+      workbook = XLSX.read(text, { type: 'string' });
+    } else {
+      workbook = XLSX.read(buffer, { type: 'buffer' });
+    }
+    
     const sheetName = workbook.SheetNames[0]
     const sheet = workbook.Sheets[sheetName]
     const rawData = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' })
@@ -104,11 +112,20 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Tentar parsing via texto combinado E via campos mapeados
-        const combinedText = Object.values(row).filter(Boolean).join(' ')
-        const parseResult = parseProductText(String(combinedText))
+        // Tentar usar o parser inteligente (Gemini) se disponível para o CSV também
+        const { parseProductSmart } = await import('@/lib/parser')
+        
+        // Mapear dados usando o mapeamento de colunas
+        const combinedText = Object.entries(row)
+          .filter(([key]) => !['quantidade', 'estoque', 'descrição', 'descricao'].includes(key.toLowerCase()))
+          .map(([_, v]) => v)
+          .filter(Boolean)
+          .join(' ')
 
-        // Sobrescrever com dados estruturados das colunas (são mais confiáveis)
+        // O parseResult agora vem da IA se a chave estiver configurada
+        const parseResult = await parseProductSmart(String(combinedText))
+
+        // Sobrescrever com dados estruturados das colunas (são mais confiáveis se existirem)
         if (mappedRow.name) parseResult.parsed_name = String(mappedRow.name)
         if (mappedRow.reference) parseResult.parsed_reference = String(mappedRow.reference)
         if (mappedRow.category) {
