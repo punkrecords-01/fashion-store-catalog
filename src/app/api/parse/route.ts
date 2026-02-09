@@ -3,7 +3,7 @@
 // ============================================
 
 import { NextRequest, NextResponse } from 'next/server'
-import { parseProductText, parseProductHybrid } from '@/lib/parser'
+import { parseProductText, parseProductSmart } from '@/lib/parser'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
 
     let result
     if (useAI) {
-      result = await parseProductHybrid(text, true)
+      result = await parseProductSmart(text)
     } else {
       result = parseProductText(text)
     }

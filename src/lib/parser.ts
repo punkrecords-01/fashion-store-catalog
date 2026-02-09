@@ -490,116 +490,153 @@ export function parseProductText(rawText: string): ParseResult {
 }
 
 // ============================================
-// IA OPCIONAL (Ollama)
+// IA: Google Gemini
 // ============================================
 
-const OLLAMA_PROMPT = `Você é um assistente especializado em moda feminina brasileira. 
+const GEMINI_PROMPT = `Você é um parser especializado em moda feminina brasileira.
 Extraia informações estruturadas do texto abaixo sobre um produto de moda.
-Responda APENAS com um JSON válido, sem explicações.
+Responda APENAS com JSON válido, sem markdown, sem explicações, sem code blocks.
 
-Campos esperados:
-- name: nome do produto (string)
-- category: uma de: vestido, blusa, calca, saia, shorts, macacao, conjunto, bolsa, cinto, bijuteria, acessorio
-- sizes: array de tamanhos normalizados (PP, P, M, G, GG, U)
-- colors: array de cores em português
-- price: preço numérico
-- brand: marca se mencionada
-- reference: código de referência
-- fabric: tecido/material
-- description: descrição curta
+REGRAS IMPORTANTES PARA O "name":
+- O nome deve ser CURTO e descritivo, apenas o tipo de peça + modelo/estilo
+- NÃO inclua preço, tamanho, cor, tecido, referência ou marca no nome
+- Exemplos bons: "Vestido Midi Floral", "Calça Boca Larga", "Scarpin Bico Fino", "Bolsa Bucket"
+- Exemplos RUINS: "Vestido Midi Floral R$340", "Calça Boca Larga Amissima Algodão"
 
-Texto: `
+REGRAS PARA "description":
+- Crie uma descrição curta e elegante (1-2 frases) para o catálogo, como se fosse uma loja de moda sofisticada
+- Use linguagem refinada e aspiracional
 
-export async function parseWithAI(rawText: string): Promise<Partial<ParseResult>> {
-  const ollamaUrl = process.env.OLLAMA_URL || 'http://localhost:11434'
+Campos esperados (JSON):
+{
+  "name": "nome curto do produto (tipo + modelo, sem preço/cor/tecido/marca)",
+  "category": "uma de: vestido, blusa, calca, saia, shorts, macacao, conjunto, bolsa, cinto, bijuteria, acessorio",
+  "sizes": ["array de tamanhos normalizados: PP, P, M, G, GG, U, ou números como 34, 36, 38"],
+  "colors": ["array de cores em português lowercase: preto, branco, verde, azul, etc"],
+  "price": 0.00,
+  "original_price": null,
+  "brand": "marca se mencionada, ou null",
+  "reference": "código de referência se mencionado, ou null",
+  "fabric": "uma de: algodao, poliester, viscose, linho, seda, jeans, couro, trico, crepe, renda, chiffon, cetim, veludo, ou null",
+  "description": "descrição elegante curta para o catálogo",
+  "occasion": ["array de: casual, trabalho, festa, praia, evento_formal, dia_a_dia"],
+  "fit": "uma de: ajustado, regular, solto, oversized, slim, ou null",
+  "length": "uma de: curto, medio, midi, longo, cropped, ou null",
+  "pattern": "uma de: liso, estampado, listrado, xadrez, floral, poa, animal_print, geometrico, ou null",
+  "style_tags": ["array de: casual, festa, trabalho, praia, trendy, basico, elegante, romantico, esportivo"]
+}
+
+Texto do produto: `
+
+export async function parseWithGemini(rawText: string): Promise<Partial<ParseResult>> {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    console.warn('⚠️ GEMINI_API_KEY não configurada, usando parser manual')
+    return {}
+  }
 
   try {
-    const response = await fetch(`${ollamaUrl}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: process.env.OLLAMA_MODEL || 'mistral',
-        prompt: OLLAMA_PROMPT + rawText,
-        stream: false,
-        format: 'json',
-      }),
-    })
+    const { GoogleGenerativeAI } = await import('@google/generative-ai')
+    const genAI = new GoogleGenerativeAI(apiKey)
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
+    
+    const result = await model.generateContent(GEMINI_PROMPT + rawText)
+    const response = result.response.text()
+    
+    // Limpar possíveis code blocks
+    const jsonStr = response.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+    const parsed = JSON.parse(jsonStr)
 
-    if (!response.ok) {
-      console.warn('Ollama not available, skipping AI parsing')
-      return {}
-    }
-
-    const data = await response.json()
-    const parsed = JSON.parse(data.response)
-
-    // Mapear resultado da IA para ParseResult
     return {
-      parsed_name: parsed.name,
-      parsed_category: parsed.category,
+      parsed_name: parsed.name || undefined,
+      parsed_category: parsed.category || undefined,
       parsed_sizes: parsed.sizes || [],
       parsed_colors: parsed.colors || [],
-      parsed_price: parsed.price,
-      parsed_brand: parsed.brand,
-      parsed_reference: parsed.reference,
-      parsed_fabric: parsed.fabric,
-      parsed_description: parsed.description,
+      parsed_price: parsed.price || undefined,
+      parsed_original_price: parsed.original_price || undefined,
+      parsed_brand: parsed.brand || undefined,
+      parsed_reference: parsed.reference || undefined,
+      parsed_fabric: parsed.fabric || undefined,
+      parsed_description: parsed.description || undefined,
+      parsed_occasion: parsed.occasion || [],
+      parsed_fit: parsed.fit || undefined,
+      parsed_length: parsed.length || undefined,
+      parsed_pattern: parsed.pattern || undefined,
+      parsed_style_tags: parsed.style_tags || [],
     }
   } catch (error) {
-    console.warn('AI parsing failed:', error)
+    console.warn('❌ Gemini parsing failed:', error)
     return {}
   }
 }
 
 /**
- * Parser híbrido: Regex primeiro, IA complementa campos vazios
+ * Parser híbrido: Regex primeiro, Gemini complementa e corrige
  */
-export async function parseProductHybrid(rawText: string, useAI = false): Promise<ParseResult> {
-  // 1. Parser manual (regex + dicionários)
+export async function parseProductSmart(rawText: string): Promise<ParseResult> {
+  // 1. Parser manual (regex + dicionários) como base rápida
   const manualResult = parseProductText(rawText)
 
-  if (!useAI) return manualResult
+  // 2. Tentar Gemini para resultado mais inteligente
+  try {
+    const aiResult = await parseWithGemini(rawText)
 
-  // 2. Se confiança < 0.5, tenta IA
-  if (manualResult.confidence_score < 0.5) {
-    try {
-      const aiResult = await parseWithAI(rawText)
-
-      // Preencher campos vazios com resultado da IA
-      if (!manualResult.parsed_name && aiResult.parsed_name) {
-        manualResult.parsed_name = aiResult.parsed_name
-      }
-      if (!manualResult.parsed_category && aiResult.parsed_category) {
-        manualResult.parsed_category = aiResult.parsed_category
-      }
-      if (manualResult.parsed_sizes.length === 0 && aiResult.parsed_sizes?.length) {
-        manualResult.parsed_sizes = aiResult.parsed_sizes
-      }
-      if (manualResult.parsed_colors.length === 0 && aiResult.parsed_colors?.length) {
-        manualResult.parsed_colors = aiResult.parsed_colors
-      }
-      if (!manualResult.parsed_price && aiResult.parsed_price) {
-        manualResult.parsed_price = aiResult.parsed_price
-      }
-      if (!manualResult.parsed_brand && aiResult.parsed_brand) {
-        manualResult.parsed_brand = aiResult.parsed_brand
-      }
-      if (!manualResult.parsed_reference && aiResult.parsed_reference) {
-        manualResult.parsed_reference = aiResult.parsed_reference
-      }
-      if (!manualResult.parsed_fabric && aiResult.parsed_fabric) {
-        manualResult.parsed_fabric = aiResult.parsed_fabric
-      }
-      if (!manualResult.parsed_description && aiResult.parsed_description) {
-        manualResult.parsed_description = aiResult.parsed_description
-      }
-
-      // Recalcular confiança
-      manualResult.confidence_score = calculateConfidence(manualResult)
-      manualResult.warnings = generateWarnings(manualResult)
-    } catch {
-      // IA falhou, segue com resultado manual
+    // Se a IA retornou algo, ela SEMPRE vence no nome (é mais inteligente para isso)
+    if (aiResult.parsed_name) {
+      manualResult.parsed_name = aiResult.parsed_name
     }
+    // A IA também vence na descrição (o regex não gera descrição)
+    if (aiResult.parsed_description) {
+      manualResult.parsed_description = aiResult.parsed_description
+    }
+
+    // Para os outros campos, a IA preenche o que o regex não encontrou
+    if (!manualResult.parsed_category && aiResult.parsed_category) {
+      manualResult.parsed_category = aiResult.parsed_category
+    }
+    if (manualResult.parsed_sizes.length === 0 && aiResult.parsed_sizes?.length) {
+      manualResult.parsed_sizes = aiResult.parsed_sizes
+    }
+    if (manualResult.parsed_colors.length === 0 && aiResult.parsed_colors?.length) {
+      manualResult.parsed_colors = aiResult.parsed_colors
+    }
+    if (!manualResult.parsed_price && aiResult.parsed_price) {
+      manualResult.parsed_price = aiResult.parsed_price
+    }
+    if (!manualResult.parsed_original_price && aiResult.parsed_original_price) {
+      manualResult.parsed_original_price = aiResult.parsed_original_price
+    }
+    if (!manualResult.parsed_brand && aiResult.parsed_brand) {
+      manualResult.parsed_brand = aiResult.parsed_brand
+    }
+    if (!manualResult.parsed_reference && aiResult.parsed_reference) {
+      manualResult.parsed_reference = aiResult.parsed_reference
+    }
+    if (!manualResult.parsed_fabric && aiResult.parsed_fabric) {
+      manualResult.parsed_fabric = aiResult.parsed_fabric
+    }
+    if (manualResult.parsed_occasion.length === 0 && aiResult.parsed_occasion?.length) {
+      manualResult.parsed_occasion = aiResult.parsed_occasion
+    }
+    if (!manualResult.parsed_fit && aiResult.parsed_fit) {
+      manualResult.parsed_fit = aiResult.parsed_fit
+    }
+    if (!manualResult.parsed_length && aiResult.parsed_length) {
+      manualResult.parsed_length = aiResult.parsed_length
+    }
+    if (!manualResult.parsed_pattern && aiResult.parsed_pattern) {
+      manualResult.parsed_pattern = aiResult.parsed_pattern
+    }
+    if (manualResult.parsed_style_tags.length === 0 && aiResult.parsed_style_tags?.length) {
+      manualResult.parsed_style_tags = aiResult.parsed_style_tags
+    }
+
+    // Recalcular confiança
+    manualResult.confidence_score = calculateConfidence(manualResult)
+    manualResult.warnings = generateWarnings(manualResult)
+  } catch {
+    // IA falhou, segue com resultado manual normalmente
+    console.warn('⚠️ Gemini não disponível, usando parser manual')
   }
 
   return manualResult

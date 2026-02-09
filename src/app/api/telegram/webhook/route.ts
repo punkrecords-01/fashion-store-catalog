@@ -10,7 +10,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { parseProductText } from '@/lib/parser'
+import { parseProductSmart } from '@/lib/parser'
 
 function getServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Usar o nosso robô inteligente para ler o texto
-    const parseResult = parseProductText(text)
+    // Usar o parser inteligente (Gemini + Regex) para ler o texto
+    const parseResult = await parseProductSmart(text)
 
     // Salvar na fila de aprovação
     const rawText = [text, debugInfo].filter(Boolean).join('\n')

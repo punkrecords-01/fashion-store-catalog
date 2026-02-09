@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Package, FolderHeart, TrendingUp, AlertCircle, Inbox, Upload, MessageSquare, Clock } from 'lucide-react'
+import { Package, FolderHeart, TrendingUp, AlertCircle } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Stats {
@@ -10,9 +10,6 @@ interface Stats {
   availableProducts: number
   outletProducts: number
   soldProducts: number
-  pendingItems: number
-  whatsappItems: number
-  csvItems: number
 }
 
 export default function AdminDashboard() {
@@ -21,19 +18,15 @@ export default function AdminDashboard() {
     availableProducts: 0,
     outletProducts: 0,
     soldProducts: 0,
-    pendingItems: 0,
-    whatsappItems: 0,
-    csvItems: 0,
   })
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [{ data: products }, { data: pendingAll }] = await Promise.all([
-        supabase.from('products').select('status'),
-        supabase.from('pending_items').select('status, source').eq('status', 'pending'),
-      ])
+      const { data: products } = await supabase
+        .from('products')
+        .select('status')
 
       if (products) {
         setStats({
@@ -41,9 +34,6 @@ export default function AdminDashboard() {
           availableProducts: products.filter(p => p.status === 'available').length,
           outletProducts: products.filter(p => p.status === 'outlet').length,
           soldProducts: products.filter(p => p.status === 'sold').length,
-          pendingItems: pendingAll?.length || 0,
-          whatsappItems: pendingAll?.filter(p => p.source === 'whatsapp').length || 0,
-          csvItems: pendingAll?.filter(p => p.source === 'csv').length || 0,
         })
       }
       setLoading(false)
@@ -65,31 +55,6 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-display font-semibold">Dashboard</h1>
         <p className="text-brand-500 text-sm mt-1">Visão geral do seu catálogo</p>
       </div>
-
-      {/* Pending Items Alert */}
-      {stats.pendingItems > 0 && (
-        <Link
-          href="/admin/pendentes"
-          className="block mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl hover:bg-amber-100 transition-colors"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-              <Inbox className="w-5 h-5 text-amber-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-amber-900">
-                {stats.pendingItems} {stats.pendingItems === 1 ? 'item aguardando' : 'itens aguardando'} aprovação
-              </p>
-              <p className="text-sm text-amber-600">
-                {stats.whatsappItems > 0 && `${stats.whatsappItems} via WhatsApp`}
-                {stats.whatsappItems > 0 && stats.csvItems > 0 && ' • '}
-                {stats.csvItems > 0 && `${stats.csvItems} via CSV`}
-              </p>
-            </div>
-            <span className="text-amber-600 text-sm font-medium">Revisar →</span>
-          </div>
-        </Link>
-      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -114,33 +79,13 @@ export default function AdminDashboard() {
         <h2 className="font-semibold text-brand-900 mb-4">Ações Rápidas</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Link
-            href="/admin/importar"
-            className="flex items-center gap-4 p-4 bg-brand-900 text-white rounded-xl hover:bg-brand-800 transition-colors"
-          >
-            <Upload className="w-6 h-6" />
-            <div>
-              <p className="font-medium">Importar Produtos</p>
-              <p className="text-sm opacity-80">CSV, Excel ou texto livre</p>
-            </div>
-          </Link>
-          <Link
-            href="/admin/pendentes"
-            className="flex items-center gap-4 p-4 bg-amber-50 text-amber-900 rounded-xl hover:bg-amber-100 transition-colors border border-amber-200"
-          >
-            <Inbox className="w-6 h-6" />
-            <div>
-              <p className="font-medium">Fila de Aprovação</p>
-              <p className="text-sm text-amber-600">Revisar itens pendentes</p>
-            </div>
-          </Link>
-          <Link
             href="/admin/produtos/novo"
-            className="flex items-center gap-4 p-4 bg-brand-100 text-brand-900 rounded-xl hover:bg-brand-200 transition-colors"
+            className="flex items-center gap-4 p-4 bg-brand-900 text-white rounded-xl hover:bg-brand-800 transition-colors"
           >
             <Package className="w-6 h-6" />
             <div>
               <p className="font-medium">Cadastrar Nova Peça</p>
-              <p className="text-sm text-brand-600">Adicionar manualmente</p>
+              <p className="text-sm opacity-80">Adicionar produto ao catálogo</p>
             </div>
           </Link>
           <Link
