@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
 import { WhatsAppButton } from '@/components/ui/WhatsAppButton'
 import { CartProvider } from '@/contexts/CartContext'
+import { SpeedInsights } from '@vercel/speed-insights/next'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -77,6 +78,7 @@ export default function RootLayout({
           <Footer />
           <WhatsAppButton />
         </CartProvider>
+        <SpeedInsights />
       </body>
     </html>
   )
