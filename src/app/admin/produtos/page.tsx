@@ -14,6 +14,7 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<string>('all')
   const [menuOpen, setMenuOpen] = useState<string | null>(null)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const supabase = createClient()
 
   useEffect(() => {
@@ -32,27 +33,90 @@ export default function AdminProductsPage() {
     setLoading(false)
   }
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredProducts.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(filteredProducts.map(p => p.id))
+    }
+  }
+
+  const toggleSelectProduct = (id: string) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(selectedIds.filter(i => i !== id))
+    } else {
+      setSelectedIds([...selectedIds, id])
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Tem certeza que deseja excluir ${selectedIds.length} peças?`)) return
+    
+    setLoading(true)
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .in('id', selectedIds)
+    
+    if (error) {
+      console.error('Erro ao excluir produtos:', error)
+      alert('Erro ao excluir produtos. Algumas peças podem estar vinculadas a outros registros.')
+    } else {
+      setProducts(products.filter(p => !selectedIds.includes(p.id)))
+      setSelectedIds([])
+    }
+    setLoading(false)
+  }
+
+  const handleBulkStatusUpdate = async (status: string) => {
+    setLoading(true)
+    const { error } = await supabase
+      .from('products')
+      .update({ status })
+      .in('id', selectedIds)
+    
+    if (error) {
+      console.error('Erro ao atualizar produtos:', error)
+      alert('Erro ao atualizar status dos produtos.')
+    } else {
+      setProducts(products.map(p => 
+        selectedIds.includes(p.id) ? { ...p, status: status as Product['status'] } : p
+      ))
+      setSelectedIds([])
+    }
+    setLoading(false)
+  }
+
   const updateStatus = async (id: string, status: string) => {
-    await supabase
+    const { error } = await supabase
       .from('products')
       .update({ status })
       .eq('id', id)
     
-    setProducts(products.map(p => 
-      p.id === id ? { ...p, status: status as Product['status'] } : p
-    ))
+    if (error) {
+      alert('Erro ao atualizar status.')
+    } else {
+      setProducts(products.map(p => 
+        p.id === id ? { ...p, status: status as Product['status'] } : p
+      ))
+    }
     setMenuOpen(null)
   }
 
   const deleteProduct = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir esta peça?')) return
     
-    await supabase
+    const { error } = await supabase
       .from('products')
       .delete()
       .eq('id', id)
     
-    setProducts(products.filter(p => p.id !== id))
+    if (error) {
+      console.error('Erro ao excluir produto:', error)
+      alert('Erro ao excluir peça. Ela pode estar vinculada a um item da fila de aprovação.')
+    } else {
+      setProducts(products.filter(p => p.id !== id))
+    }
     setMenuOpen(null)
   }
 
@@ -112,6 +176,43 @@ export default function AdminProductsPage() {
         </select>
       </div>
 
+      {/* Bulk Actions BAR */}
+      {selectedIds.length > 0 && (
+        <div className="mb-6 p-4 bg-brand-900 text-white rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-4">
+          <div className="flex items-center gap-4">
+            <span className="font-medium">{selectedIds.length} selecionados</span>
+            <div className="h-6 w-px bg-brand-700" />
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleBulkStatusUpdate('available')}
+                className="px-3 py-1 text-xs bg-brand-800 hover:bg-brand-700 rounded-lg transition-colors"
+              >
+                Marcar Disponível
+              </button>
+              <button
+                onClick={() => handleBulkStatusUpdate('sold')}
+                className="px-3 py-1 text-xs bg-brand-800 hover:bg-brand-700 rounded-lg transition-colors"
+              >
+                Marcar Vendido
+              </button>
+              <button
+                onClick={() => handleBulkStatusUpdate('outlet')}
+                className="px-3 py-1 text-xs bg-brand-800 hover:bg-brand-700 rounded-lg transition-colors"
+              >
+                Mover p/ Outlet
+              </button>
+            </div>
+          </div>
+          <button
+            onClick={handleBulkDelete}
+            className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-xl transition-colors font-medium text-sm"
+          >
+            <Trash2 className="w-4 h-4" />
+            Excluir {selectedIds.length === filteredProducts.length ? 'Tudo' : ''}
+          </button>
+        </div>
+      )}
+
       {/* Products List */}
       {loading ? (
         <div className="text-center py-12 text-brand-400">Carregando...</div>
@@ -128,6 +229,14 @@ export default function AdminProductsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-brand-100">
+                  <th className="px-4 py-3 text-left">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.length === filteredProducts.length && filteredProducts.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded border-brand-300 text-brand-900 focus:ring-brand-900"
+                    />
+                  </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-brand-500 uppercase">Peça</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-brand-500 uppercase hidden sm:table-cell">Categoria</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-brand-500 uppercase">Preço</th>
@@ -137,7 +246,21 @@ export default function AdminProductsPage() {
               </thead>
               <tbody className="divide-y divide-brand-100">
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="hover:bg-brand-50">
+                  <tr 
+                    key={product.id} 
+                    className={cn(
+                      "hover:bg-brand-50 transition-colors",
+                      selectedIds.includes(product.id) && "bg-brand-50"
+                    )}
+                  >
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(product.id)}
+                        onChange={() => toggleSelectProduct(product.id)}
+                        className="w-4 h-4 rounded border-brand-300 text-brand-900 focus:ring-brand-900"
+                      />
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-brand-100 rounded-lg overflow-hidden flex-shrink-0">

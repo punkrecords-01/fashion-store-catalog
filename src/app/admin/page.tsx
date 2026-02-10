@@ -153,6 +153,16 @@ export default function AdminDashboard() {
               <p className="text-sm text-brand-600">Editar status das peças</p>
             </div>
           </Link>
+          <Link
+            href="/admin/colecoes"
+            className="flex items-center gap-4 p-4 bg-brand-100 text-brand-900 rounded-xl hover:bg-brand-200 transition-colors"
+          >
+            <FolderHeart className="w-6 h-6" />
+            <div>
+              <p className="font-medium">Curadoria & Coleções</p>
+              <p className="text-sm text-brand-600">Organizar looks temáticos</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

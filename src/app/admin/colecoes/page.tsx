@@ -35,13 +35,13 @@ export default function AdminCollectionsPage() {
           <h1 className="text-2xl font-display font-semibold">Coleções</h1>
           <p className="text-brand-500 text-sm mt-1">Curadorias editoriais</p>
         </div>
-        <button
-          disabled
-          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-200 text-brand-400 rounded-xl cursor-not-allowed"
+        <Link
+          href="/admin/colecoes/novo"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-brand-900 text-white rounded-xl hover:bg-brand-800 transition-colors"
         >
           <Plus className="w-5 h-5" />
-          Nova Coleção (em breve)
-        </button>
+          Nova Coleção
+        </Link>
       </div>
 
       {/* Info */}
@@ -66,19 +66,22 @@ export default function AdminCollectionsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {collections.map((collection) => (
-            <div
+            <Link
               key={collection.id}
-              className="bg-white rounded-2xl p-6 border border-brand-100"
+              href={`/admin/colecoes/${collection.id}`}
+              className="bg-white rounded-2xl p-6 border border-brand-100 hover:border-brand-300 transition-colors group"
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="font-semibold text-brand-900">{collection.title}</h3>
-                  <p className="text-sm text-brand-500 mt-1">{collection.description}</p>
+                  <h3 className="font-semibold text-brand-900 group-hover:text-brand-700 transition-colors">
+                    {collection.title}
+                  </h3>
+                  <p className="text-sm text-brand-500 mt-1 line-clamp-2">{collection.description}</p>
                   <p className="text-xs text-brand-400 mt-2">
                     {collection.product_ids?.length || 0} peças
                   </p>
                 </div>
-                <span className={`px-2 py-1 text-xs rounded-full ${
+                <span className={`flex-shrink-0 px-2 py-1 text-xs rounded-full ${
                   collection.published 
                     ? 'bg-green-100 text-green-700' 
                     : 'bg-gray-100 text-gray-500'
@@ -86,7 +89,7 @@ export default function AdminCollectionsPage() {
                   {collection.published ? 'Publicada' : 'Rascunho'}
                 </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS pending_items (
   -- Revisão
   reviewed_by UUID REFERENCES auth.users(id),
   reviewed_at TIMESTAMPTZ,
-  merged_product_id UUID REFERENCES products(id),
+  merged_product_id UUID REFERENCES products(id) ON DELETE SET NULL,
   
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW(),

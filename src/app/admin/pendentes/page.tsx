@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, memo, useMemo } from 'react'
 import Link from 'next/link'
 import { 
   ArrowLeft, Check, X, Edit3, ChevronLeft, ChevronRight,
@@ -31,7 +31,12 @@ const SOURCE_LABELS: Record<string, string> = {
   manual: 'Manual',
 }
 
-function ConfidenceBadge({ score }: { score: number }) {
+const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ value, label }))
+const COLOR_OPTIONS = Object.entries(COLOR_LABELS).map(([value, label]) => ({ value, label }))
+const SIZE_OPTIONS = SIZE_ORDER.map((s) => ({ value: s, label: s }))
+const FABRIC_OPTIONS = Object.entries(FABRIC_LABELS).map(([value, label]) => ({ value, label }))
+
+const ConfidenceBadge = memo(function ConfidenceBadge({ score }: { score: number }) {
   const percent = Math.round(score * 100)
   const color = score >= 0.7 ? 'text-green-600 bg-green-50' : score >= 0.4 ? 'text-yellow-600 bg-yellow-50' : 'text-red-600 bg-red-50'
 
@@ -41,9 +46,9 @@ function ConfidenceBadge({ score }: { score: number }) {
       {percent}%
     </span>
   )
-}
+})
 
-function EditableField({
+const EditableField = memo(function EditableField({
   label, value, onChange, type = 'text', options,
 }: {
   label: string
@@ -81,9 +86,9 @@ function EditableField({
       />
     </div>
   )
-}
+})
 
-function MultiSelectField({
+const MultiSelectField = memo(function MultiSelectField({
   label, selected, options, onChange,
 }: {
   label: string
@@ -120,12 +125,12 @@ function MultiSelectField({
       </div>
     </div>
   )
-}
+})
 
 // ============================================
 // TINDER CARD
 // ============================================
-function TinderCard({
+const TinderCard = memo(function TinderCard({
   item,
   onApprove,
   onReject,
@@ -138,7 +143,7 @@ function TinderCard({
   onReject: (item: PendingItem) => void
   onEdit: () => void
   animating: 'left' | 'right' | null
-  onUpdateImages: (urls: string[]) => void
+  onUpdateImages: (id: string, urls: string[]) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -154,12 +159,23 @@ function TinderCard({
     description: item.parsed_description || '',
   })
 
-  const SourceIcon = SOURCE_ICONS[item.source] || Keyboard
+  useEffect(() => {
+    setEditData({
+      name: item.parsed_name || '',
+      category: item.parsed_category || '',
+      sizes: item.parsed_sizes || [],
+      colors: item.parsed_colors || [],
+      price: item.parsed_price?.toString() || '',
+      brand: item.parsed_brand || '',
+      reference: item.parsed_reference || '',
+      fabric: item.parsed_fabric || '',
+      description: item.parsed_description || '',
+    })
+    setEditing(false)
+    setActiveImageIndex(0)
+  }, [item.id])
 
-  const categoryOptions = Object.entries(CATEGORY_LABELS).map(([value, label]) => ({ value, label }))
-  const colorOptions = Object.entries(COLOR_LABELS).map(([value, label]) => ({ value, label }))
-  const sizeOptions = SIZE_ORDER.map((s) => ({ value: s, label: s }))
-  const fabricOptions = Object.entries(FABRIC_LABELS).map(([value, label]) => ({ value, label }))
+  const SourceIcon = SOURCE_ICONS[item.source] || Keyboard
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,7 +205,7 @@ function TinderCard({
         newUrls.push(publicUrl)
       }
 
-      onUpdateImages([...(item.raw_images || []), ...newUrls])
+      onUpdateImages(item.id, [...(item.raw_images || []), ...newUrls])
       if (newUrls.length > 0) {
         setActiveImageIndex((item.raw_images?.length || 0))
       }
@@ -204,7 +220,7 @@ function TinderCard({
   const removeImage = (index: number) => {
     const newImages = [...(item.raw_images || [])]
     newImages.splice(index, 1)
-    onUpdateImages(newImages)
+    onUpdateImages(item.id, newImages)
     if (activeImageIndex >= newImages.length) {
       setActiveImageIndex(Math.max(0, newImages.length - 1))
     }
@@ -408,13 +424,13 @@ function TinderCard({
           /* Edit Form */
           <div className="space-y-3">
             <EditableField label="Nome" value={editData.name} onChange={(v) => setEditData({...editData, name: v})} />
-            <EditableField label="Categoria" value={editData.category} onChange={(v) => setEditData({...editData, category: v})} type="select" options={categoryOptions} />
+            <EditableField label="Categoria" value={editData.category} onChange={(v) => setEditData({...editData, category: v})} type="select" options={CATEGORY_OPTIONS} />
             <EditableField label="Referência" value={editData.reference} onChange={(v) => setEditData({...editData, reference: v})} />
             <EditableField label="Preço" value={editData.price} onChange={(v) => setEditData({...editData, price: v})} type="number" />
             <EditableField label="Marca" value={editData.brand} onChange={(v) => setEditData({...editData, brand: v})} />
-            <EditableField label="Tecido" value={editData.fabric} onChange={(v) => setEditData({...editData, fabric: v})} type="select" options={fabricOptions} />
-            <MultiSelectField label="Tamanhos" selected={editData.sizes} options={sizeOptions} onChange={(v) => setEditData({...editData, sizes: v})} />
-            <MultiSelectField label="Cores" selected={editData.colors} options={colorOptions} onChange={(v) => setEditData({...editData, colors: v})} />
+            <EditableField label="Tecido" value={editData.fabric} onChange={(v) => setEditData({...editData, fabric: v})} type="select" options={FABRIC_OPTIONS} />
+            <MultiSelectField label="Tamanhos" selected={editData.sizes} options={SIZE_OPTIONS} onChange={(v) => setEditData({...editData, sizes: v})} />
+            <MultiSelectField label="Cores" selected={editData.colors} options={COLOR_OPTIONS} onChange={(v) => setEditData({...editData, colors: v})} />
             <EditableField label="Descrição" value={editData.description} onChange={(v) => setEditData({...editData, description: v})} />
           </div>
         )}
@@ -461,11 +477,14 @@ function TinderCard({
       </div>
     </div>
   )
-}
+})
 
 // ============================================
 // MAIN PAGE
 // ============================================
+const NOOP = () => {}
+const NOOP_ASYNC = async () => {}
+
 export default function PendingItemsPage() {
   const [items, setItems] = useState<PendingItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -497,7 +516,8 @@ export default function PendingItemsPage() {
     fetchItems()
   }, [fetchItems])
 
-  const handleApprove = async (item: PendingItem, editedData?: Record<string, unknown>) => {
+  const handleApprove = useCallback(async (item: PendingItem, editedData?: Record<string, unknown>) => {
+    if (processing) return
     setProcessing(true)
     setAnimating('right')
 
@@ -538,9 +558,10 @@ export default function PendingItemsPage() {
     } finally {
       setProcessing(false)
     }
-  }
+  }, [processing])
 
-  const handleReject = async (item: PendingItem) => {
+  const handleReject = useCallback(async (item: PendingItem) => {
+    if (processing) return
     setProcessing(true)
     setAnimating('left')
 
@@ -563,9 +584,9 @@ export default function PendingItemsPage() {
     } finally {
       setProcessing(false)
     }
-  }
+  }, [processing])
 
-  const handleUpdateImages = async (itemId: string, newUrls: string[]) => {
+  const handleUpdateImages = useCallback(async (itemId: string, newUrls: string[]) => {
     // Atualizar no banco
     const { error } = await supabase
       .from('pending_items')
@@ -578,8 +599,8 @@ export default function PendingItemsPage() {
     }
 
     // Atualizar no estado local
-    setItems(items.map(item => item.id === itemId ? { ...item, raw_images: newUrls } : item))
-  }
+    setItems(prev => prev.map(item => item.id === itemId ? { ...item, raw_images: newUrls } : item))
+  }, [supabase])
 
   const handleRejectAll = async () => {
     if (!confirm('Tem certeza que deseja rejeitar TODOS os itens pendentes?')) return
@@ -709,29 +730,53 @@ export default function PendingItemsPage() {
           <div className="flex items-center justify-between mb-4 text-sm text-brand-500">
             <span>{currentIndex + 1} de {items.length}</span>
             <div className="flex gap-1">
-              {items.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((_, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'w-2 h-2 rounded-full',
-                    i + Math.max(0, currentIndex - 2) === currentIndex ? 'bg-brand-900' : 'bg-brand-200'
-                  )}
-                />
-              ))}
+              {items.slice(Math.max(0, currentIndex - 2), currentIndex + 3).map((_, i) => {
+                const globalIdx = i + Math.max(0, currentIndex - 2)
+                return (
+                  <div
+                    key={globalIdx}
+                    className={cn(
+                      'w-2 h-2 rounded-full transition-all duration-300',
+                      globalIdx === currentIndex ? 'bg-brand-900 w-4' : 
+                      globalIdx < currentIndex ? 'bg-brand-400' : 'bg-brand-200'
+                    )}
+                  />
+                )
+              })}
             </div>
           </div>
 
-          {currentItem && (
-            <TinderCard
-              key={currentItem.id}
-              item={currentItem}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onEdit={() => {}}
-              onUpdateImages={(urls) => handleUpdateImages(currentItem.id, urls)}
-              animating={animating}
-            />
-          )}
+          <div className="relative min-h-[600px]">
+            {/* Next Card (Background) */}
+            {currentIndex + 1 < items.length && (
+              <div className="absolute inset-0 top-2 scale-[0.98] opacity-40 blur-[1px] pointer-events-none transition-all duration-500">
+                <TinderCard
+                  key={items[currentIndex + 1].id}
+                  item={items[currentIndex + 1]}
+                  onApprove={NOOP}
+                  onReject={NOOP}
+                  onEdit={NOOP}
+                  onUpdateImages={NOOP}
+                  animating={null}
+                />
+              </div>
+            )}
+
+            {/* Current Card (Top) */}
+            {currentItem && (
+              <div className="relative z-10">
+                <TinderCard
+                  key={currentItem.id}
+                  item={currentItem}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onEdit={() => {}}
+                  onUpdateImages={handleUpdateImages}
+                  animating={animating}
+                />
+              </div>
+            )}
+          </div>
 
           {/* Navigation */}
           <div className="flex justify-center gap-4 mt-4">
